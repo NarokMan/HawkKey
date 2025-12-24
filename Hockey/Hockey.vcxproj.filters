@@ -21,9 +21,15 @@
     <ClCompile Include="Puck.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Rink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Puck.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rink.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
