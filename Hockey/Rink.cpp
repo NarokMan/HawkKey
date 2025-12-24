@@ -1,6 +1,9 @@
 #include "Rink.h"
 #include <SDL3/SDL.h>
 
+#define WINDOW_WIDTH 1600
+#define WINDOW_HEIGHT 900
+
 Rink::Rink(int init_x, int init_y, int init_width, int init_height, SDL_Texture* init_texture)
 {
 	screen_x = init_x;
@@ -10,8 +13,8 @@ Rink::Rink(int init_x, int init_y, int init_width, int init_height, SDL_Texture*
 	texture = init_texture;
 }
 
-int Rink::get_screen_x() { return screen_x; }
-int Rink::get_screen_y() { return screen_y; }
+int Rink::get_screen_x(int camera_x) { return screen_x - camera_x + WINDOW_WIDTH / 2; }
+int Rink::get_screen_y(int camera_y) { return screen_y - camera_y + WINDOW_HEIGHT / 2; }
 int Rink::get_width() { return width; }
 int Rink::get_height() { return height; }
 SDL_Texture* Rink::get_texture() { return texture; }

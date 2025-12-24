@@ -6,8 +6,8 @@ class Rink
 
 public:
 	Rink(int x, int y, int width, int height, SDL_Texture* texture);
-	int get_screen_x();
-	int get_screen_y();
+	int get_screen_x(int camera_x);
+	int get_screen_y(int camera_y);
 	int get_width();
 	int get_height();
 	SDL_Texture* get_texture();
@@ -19,8 +19,8 @@ public:
 	void set_texture(SDL_Texture* new_texture);
 
 private:
-	int screen_x;
-	int screen_y;
+	float screen_x;
+	float screen_y;
 	int width;
 	int height;
 	SDL_Texture* texture;

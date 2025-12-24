@@ -8,8 +8,22 @@ Camera::Camera()
 
 void Camera::adjust_cam_position(int puck_x, int puck_y)
 {
-	x = puck_x;
-	y = puck_y;
+	if (x != puck_x) {
+		dx = puck_x - x;
+	}
+	else {
+		dx = 0;
+	}
+
+	if (y != puck_y) {
+		dy = puck_y - y;
+	}
+	else {
+		dy = 0;
+	}
+
+	x += dx / 20;
+	y += dy / 20;
 }
 
 int Camera::get_x() { return x; }

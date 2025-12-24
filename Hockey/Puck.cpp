@@ -26,6 +26,8 @@ void Puck::update_screen_position(int rink_x, int rink_y) {
 
 int Puck::get_screen_x(int rink_x) { return rink_x + rel_x; }
 int Puck::get_screen_y(int rink_y) { return rink_y + rel_y; }
+float Puck::get_rel_x() { return rel_x; }
+float Puck::get_rel_y() { return rel_y; }
 float Puck::get_vel_x() { return vel_x; }
 float Puck::get_vel_y() { return vel_y; }
 int Puck::get_radius() { return radius; }

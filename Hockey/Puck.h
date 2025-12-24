@@ -12,6 +12,8 @@ public:
 
 	int get_screen_x(int rink_x);
 	int get_screen_y(int rink_y);
+	float get_rel_x();
+	float get_rel_y();
 	float get_vel_x();
 	float get_vel_y();
 	int get_radius();
@@ -26,8 +28,8 @@ public:
 private:
 	int screen_x; // On-screen x position
 	int screen_y; // On-screen y position
-	int rel_x; // x position relative to the top left corner of the rink image
-	int rel_y; // y position relative to the top left corner of the rink image
+	float rel_x; // x position relative to the top left corner of the rink image
+	float rel_y; // y position relative to the top left corner of the rink image
 	float vel_x; // Velocity in the x direction
 	float vel_y; // Velocity in the y direction
 	int radius;
