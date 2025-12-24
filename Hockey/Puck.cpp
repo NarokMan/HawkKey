@@ -12,6 +12,11 @@ Puck::Puck(int init_x, int init_y, float init_vel_x, float init_vel_y, int init_
 	rect = { x - radius, y - radius, radius * 2, radius * 2 };
 }
 
+void Puck::update_position() {
+	x += vel_x;
+	y += vel_y;
+}
+
 int Puck::get_x() { return x; }
 int Puck::get_y() { return y; }
 float Puck::get_vel_x() { return vel_x; }
@@ -20,8 +25,8 @@ int Puck::get_radius() { return radius; }
 SDL_Texture* Puck::get_texture() { return texture; }
 SDL_FRect Puck::get_rect() { 
 	SDL_FRect rect;
-	rect.x = x - radius;
-	rect.y = y - radius;
+	rect.x = x;
+	rect.y = y;
 	rect.w = radius * 2;
 	rect.h = radius * 2;
 	return rect; 

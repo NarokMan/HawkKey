@@ -5,6 +5,7 @@
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "Puck.h"
+#include "Rink.h"
 #include <vector>
 
 #define ANSI_COLOR_RED "\x1b[31m"
@@ -18,10 +19,13 @@
 static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
 
-int num_textures = 1;
+int num_textures = 2;
 std::vector<SDL_Texture*> textures;
 
+Rink rink(0, 0, 3000, 1275, NULL);
 std::vector<Puck> pucks;
+
+int frameStart = 0;
 
 MIX_Mixer* mixer = NULL;
 
@@ -93,7 +97,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
 	SDL_Surface* temp_surface = SDL_LoadPNG("thingies/Eyes/puck4.png");
     if (temp_surface == NULL) {
-        SDL_Log(ANSI_COLOR_RED "Failed to load image: %s" ANSI_COLOR_RESET, SDL_GetError());
+        SDL_Log(ANSI_COLOR_RED "Failed to load puck image: %s" ANSI_COLOR_RESET, SDL_GetError());
 		textures[0] = NULL;
     } else {
         SDL_Log(ANSI_COLOR_GREEN "Loaded puck image successfully!" ANSI_COLOR_RESET);
@@ -101,7 +105,19 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         SDL_DestroySurface(temp_surface);
 	}
 
-	pucks.push_back(Puck(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f, 0.0f, 50, textures[0]));
+    temp_surface = SDL_LoadPNG("thingies/Eyes/rink5.png");
+    if (temp_surface == NULL) {
+        SDL_Log(ANSI_COLOR_RED "Failed to load rink image: %s" ANSI_COLOR_RESET, SDL_GetError());
+        textures[1] = NULL;
+    }
+    else {
+        SDL_Log(ANSI_COLOR_GREEN "Loaded rink image successfully!" ANSI_COLOR_RESET);
+        textures[1] = SDL_CreateTextureFromSurface(renderer, temp_surface);
+        SDL_DestroySurface(temp_surface);
+    }
+
+	pucks.push_back(Puck(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 1.0f, 1.0f, 20, textures[0])); // Creates a puck
+	rink.set_texture(textures[1]); // Sets rink texture
 
 	return SDL_APP_CONTINUE;  /* carry on with the program! */
 
@@ -120,16 +136,28 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
 
+	frameStart = SDL_GetTicks();
+
     SDL_SetRenderDrawColorFloat(renderer, 0.3f, 0, 0, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
 
     /* clear the window to the draw color. */
     SDL_RenderClear(renderer);
 
+	// Draw rink
+	SDL_FRect rink_rect = { 0.0f, 0.0f, (float)rink.get_width(), (float)rink.get_height() };
+	SDL_RenderTexture(renderer, rink.get_texture(), NULL, &rink_rect);
+
+	// Draw puck
+	pucks[0].update_position();
 	SDL_FRect puck_rect = pucks[0].get_rect();
 	SDL_RenderTexture(renderer, textures[0], NULL, &puck_rect);
 
     /* put the newly-cleared rendering on the screen. */
     SDL_RenderPresent(renderer);
+
+    if (SDL_GetTicks() - frameStart < 13) {
+        SDL_Delay(13 - (SDL_GetTicks() - frameStart)); // Cap at ~75 FPS
+	}
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }

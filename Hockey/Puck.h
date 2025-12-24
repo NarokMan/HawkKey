@@ -7,6 +7,7 @@ class Puck
 public:
 
 	Puck(int start_x, int start_y, float start_vel_x, float start_vel_y, int start_radius, SDL_Texture* start_texture);
+	void update_position();
 
 	int get_x();
 	int get_y();
