@@ -14,6 +14,7 @@ public:
 	float get_vel_y();
 	int get_radius();
 	SDL_Texture* get_texture();
+	SDL_FRect get_rect();
 
 	void set_x(int new_x);
 	void set_y(int new_y);
@@ -29,5 +30,6 @@ private:
 	float vel_y;
 	int radius;
 	SDL_Texture* texture;
+	SDL_Rect rect;
 };
 

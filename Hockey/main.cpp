@@ -21,6 +21,7 @@ static SDL_Renderer* renderer = NULL;
 int num_textures = 1;
 std::vector<SDL_Texture*> textures;
 
+std::vector<Puck> pucks;
 
 MIX_Mixer* mixer = NULL;
 
@@ -100,6 +101,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         SDL_DestroySurface(temp_surface);
 	}
 
+	pucks.push_back(Puck(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f, 0.0f, 50, textures[0]));
 
 	return SDL_APP_CONTINUE;  /* carry on with the program! */
 
@@ -123,11 +125,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     /* clear the window to the draw color. */
     SDL_RenderClear(renderer);
 
-    SDL_FRect puck_rect;
-	puck_rect.x = 100;
-	puck_rect.y = 100;
-	puck_rect.w = 30;
-	puck_rect.h = 30;
+	SDL_FRect puck_rect = pucks[0].get_rect();
 	SDL_RenderTexture(renderer, textures[0], NULL, &puck_rect);
 
     /* put the newly-cleared rendering on the screen. */
