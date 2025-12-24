@@ -5,6 +5,7 @@
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "Puck.h"
+#include <vector>
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
@@ -18,7 +19,7 @@ static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
 
 int num_textures = 1;
-SDL_Texture** textures = NULL;
+std::vector<SDL_Texture*> textures;
 
 
 MIX_Mixer* mixer = NULL;
@@ -87,7 +88,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         SDL_Log(ANSI_COLOR_GREEN "SetRenderLogicalPresentation() succeeded!" ANSI_COLOR_RESET);
     }
 
-    textures = (SDL_Texture**) calloc(num_textures, sizeof(SDL_Texture*));
+	textures.resize(num_textures);
 
 	SDL_Surface* temp_surface = SDL_LoadPNG("thingies/Eyes/puck4.png");
     if (temp_surface == NULL) {
@@ -117,7 +118,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
 
-    SDL_SetRenderDrawColorFloat(renderer, 0.3, 0, 0, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
+    SDL_SetRenderDrawColorFloat(renderer, 0.3f, 0, 0, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
 
     /* clear the window to the draw color. */
     SDL_RenderClear(renderer);
