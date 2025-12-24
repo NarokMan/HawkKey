@@ -7,6 +7,7 @@
 #include "Puck.h"
 #include "Rink.h"
 #include "Camera.h"
+#include <time.h>
 #include <vector>
 
 #define ANSI_COLOR_RED "\x1b[31m"
@@ -35,6 +36,8 @@ int num_textures = 2;
 std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
+
+int num_pucks = 20;
 std::vector<Puck> pucks;
 
 Camera camera;
@@ -133,7 +136,12 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         SDL_DestroySurface(temp_surface);
     }
 
-	pucks.push_back(Puck(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f, 0.0f, 10, textures[0])); // Creates a puck
+    srand(time(NULL));
+
+    for (int i = 0; i < num_pucks; i++) {
+        pucks.push_back(Puck(rand() % 3000, rand() % 1000, 0.0f, 0.0f, 10, textures[0])); // Creates pucks
+	}
+
 	rink.set_texture(textures[1]); // Sets rink texture
 
 	return SDL_APP_CONTINUE;  /* carry on with the program! */
@@ -226,7 +234,9 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     /* clear the window to the draw color. */
     SDL_RenderClear(renderer);
     
-    pucks[0].update_position(); // update relative puck position
+	for (int i = 0; i < pucks.size(); i++) {
+		pucks[i].update_position();
+    }
     camera.adjust_cam_position(pucks[0].get_rel_x(), pucks[0].get_rel_y()); // center the camera on the puck
 
 	// Draw rink using camera position
@@ -234,9 +244,13 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	SDL_RenderTexture(renderer, rink.get_texture(), NULL, &rink_rect);
 
 	// Calculate puck screen pos and draw
-	pucks[0].update_screen_position(rink.get_screen_x(camera.get_x()), rink.get_screen_y(camera.get_y()));
-	SDL_FRect puck_rect = pucks[0].get_rect();
-	SDL_RenderTexture(renderer, textures[0], NULL, &puck_rect);
+    SDL_FRect puck_rect;
+
+	for (int i = 0; i < pucks.size(); i++) {
+        pucks[i].update_screen_position(rink.get_screen_x(camera.get_x()), rink.get_screen_y(camera.get_y()));
+        puck_rect = pucks[i].get_rect();
+        SDL_RenderTexture(renderer, pucks[i].get_texture(), NULL, &puck_rect);
+    }
 
     /* put the newly-cleared rendering on the screen. */
     SDL_RenderPresent(renderer);
