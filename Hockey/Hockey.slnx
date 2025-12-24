@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Hockey.vcxproj" />
+  <Project Path="Hockey.vcxproj" Id="ac64022b-b61a-40b1-bdba-2b24bdde1267" />
 </Solution>

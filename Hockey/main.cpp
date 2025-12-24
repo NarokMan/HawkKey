@@ -4,6 +4,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include "Puck.h"
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
@@ -15,6 +16,10 @@
  /* We will use this renderer to draw into this window every frame. */
 static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
+
+int num_textures = 1;
+SDL_Texture** textures = NULL;
+
 
 MIX_Mixer* mixer = NULL;
 
@@ -82,13 +87,27 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         SDL_Log(ANSI_COLOR_GREEN "SetRenderLogicalPresentation() succeeded!" ANSI_COLOR_RESET);
     }
 
-    return SDL_APP_CONTINUE;  /* carry on with the program! */
+    textures = (SDL_Texture**) calloc(num_textures, sizeof(SDL_Texture*));
+
+	SDL_Surface* temp_surface = SDL_LoadPNG("thingies/Eyes/puck4.png");
+    if (temp_surface == NULL) {
+        SDL_Log(ANSI_COLOR_RED "Failed to load image: %s" ANSI_COLOR_RESET, SDL_GetError());
+		textures[0] = NULL;
+    } else {
+        SDL_Log(ANSI_COLOR_GREEN "Loaded puck image successfully!" ANSI_COLOR_RESET);
+        textures[0] = SDL_CreateTextureFromSurface(renderer, temp_surface);
+        SDL_DestroySurface(temp_surface);
+	}
+
+
+	return SDL_APP_CONTINUE;  /* carry on with the program! */
+
 }
 
 /* This function runs when a new event (mouse input, keypresses, etc) occurs. */
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
-    if (event->type == SDL_EVENT_QUIT) {
+    if (event->type == SDL_EVENT_QUIT) { // User clicks the red x
         return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
     }
     return SDL_APP_CONTINUE;  /* carry on with the program! */
@@ -103,6 +122,13 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     /* clear the window to the draw color. */
     SDL_RenderClear(renderer);
 
+    SDL_FRect puck_rect;
+	puck_rect.x = 100;
+	puck_rect.y = 100;
+	puck_rect.w = 30;
+	puck_rect.h = 30;
+	SDL_RenderTexture(renderer, textures[0], NULL, &puck_rect);
+
     /* put the newly-cleared rendering on the screen. */
     SDL_RenderPresent(renderer);
 
@@ -112,5 +138,14 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 /* This function runs once at shutdown. */
 void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
-    /* SDL will clean up the window/renderer for us. */
+
+	for (int i = 0; i < num_textures; i++) {
+		if (textures[i] != NULL) {
+			SDL_DestroyTexture(textures[i]);
+		}
+	}
+
+    MIX_Quit();
+	TTF_Quit();
+    SDL_Quit();
 }
