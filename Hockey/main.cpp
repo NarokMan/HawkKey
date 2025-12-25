@@ -143,6 +143,13 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	}
 
 	rink.set_texture(textures[1]); // Sets rink texture
+	rink.load_rink_mesh_from_file("rink_outline.csv"); // Loads rink mesh from file
+	if (rink.get_rink_mesh().size() == 0) {
+        SDL_Log(ANSI_COLOR_RED "Failed to load rink mesh!" ANSI_COLOR_RESET);
+    }
+    else {
+        SDL_Log(ANSI_COLOR_GREEN "Loaded rink mesh successfully!" ANSI_COLOR_RESET);
+    }
 
 	return SDL_APP_CONTINUE;  /* carry on with the program! */
 
@@ -243,9 +250,20 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     SDL_FRect rink_rect = { (float)rink.get_screen_x(camera.get_x()), (float)rink.get_screen_y(camera.get_y()), (float)rink.get_width(), (float)rink.get_height()};
 	SDL_RenderTexture(renderer, rink.get_texture(), NULL, &rink_rect);
 
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);  /* new color, full alpha. */
+	for (int i = 0; i < rink.get_rink_mesh().size(); i++) {
+        SDL_Point mesh_point = rink.get_rink_mesh_point(i);
+        SDL_FRect draw_point = { rink.get_screen_x(camera.get_x()) + mesh_point.x, rink.get_screen_y(camera.get_y()) + mesh_point.y, 4, 4 };
+        //SDL_RenderFillRect(renderer, &draw_point);
+        SDL_RenderLine(renderer,
+            rink.get_screen_x(camera.get_x()) + mesh_point.x,
+            rink.get_screen_y(camera.get_y()) + mesh_point.y,
+            rink.get_screen_x(camera.get_x()) + rink.get_rink_mesh_point((i + 1) % rink.get_rink_mesh().size()).x,
+			rink.get_screen_y(camera.get_y()) + rink.get_rink_mesh_point((i + 1) % rink.get_rink_mesh().size()).y);
+    }
+
 	// Calculate puck screen pos and draw
     SDL_FRect puck_rect;
-
 	for (int i = 0; i < pucks.size(); i++) {
         pucks[i].update_screen_position(rink.get_screen_x(camera.get_x()), rink.get_screen_y(camera.get_y()));
         puck_rect = pucks[i].get_rect();
@@ -255,8 +273,10 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     /* put the newly-cleared rendering on the screen. */
     SDL_RenderPresent(renderer);
 
-    if (SDL_GetTicks() - frameStart < 13) {
-        SDL_Delay(13 - (SDL_GetTicks() - frameStart)); // Cap at ~75 FPS
+    printf("X: %d, Y: %d\n", (int) pucks[0].get_rel_x(), (int) pucks[0].get_rel_y());
+
+    if (SDL_GetTicks() - frameStart < 20) {
+        SDL_Delay(20 - (SDL_GetTicks() - frameStart)); // Cap at ~75 FPS
 	}
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
