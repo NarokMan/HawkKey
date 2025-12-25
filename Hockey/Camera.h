@@ -1,4 +1,5 @@
 #pragma once
+
 class Camera
 {
 
@@ -16,6 +17,5 @@ private:
 	int y;
 	int dx;
 	int dy;
-
 };
 

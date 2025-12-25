@@ -4,19 +4,21 @@ Camera::Camera()
 {
 	x = 0;
 	y = 0;
+	dx = 0;
+	dy = 0;
 }
 
-void Camera::adjust_cam_position(int puck_x, int puck_y)
+void Camera::adjust_cam_position(int target_x, int target_y)
 {
-	if (x != puck_x) {
-		dx = puck_x - x;
+	if (x != target_x) {
+		dx = target_x - x;
 	}
 	else {
 		dx = 0;
 	}
 
-	if (y != puck_y) {
-		dy = puck_y - y;
+	if (y != target_y) {
+		dy = target_y - y;
 	}
 	else {
 		dy = 0;
