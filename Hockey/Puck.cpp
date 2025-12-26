@@ -26,9 +26,9 @@ void Puck::update_screen_position(int rink_x, int rink_y) {
 
 bool Puck::check_collision_with_rink(int x1, int y1, int x2, int y2) {
 	if (rel_x + radius * 2 > x1 && rel_x < x2 && rel_y + radius * 2 > y1 && rel_y < y2) {
-		return 1.0f;
+		return true;
 	}
-	return 0.0f;
+	return false;
 }
 
 int Puck::get_screen_x(int rink_x) { return rink_x + rel_x; }
@@ -47,6 +47,8 @@ SDL_FRect Puck::get_rect() {
 	rect.h = radius * 2;
 	return rect; 
 }
+int Puck::get_center_x() { return rel_x + radius; }
+int Puck::get_center_y() { return rel_y + radius; }
 
 void Puck::set_vel_x(float new_vel_x) { vel_x = new_vel_x; }
 void Puck::set_vel_y(float new_vel_y) { vel_y = new_vel_y; }

@@ -21,6 +21,8 @@ public:
 	int get_radius();
 	SDL_Texture* get_texture();
 	SDL_FRect get_rect();
+	int get_center_x();
+	int get_center_y();
 
 	void set_vel_x(float new_vel_x);
 	void set_vel_y(float new_vel_y);

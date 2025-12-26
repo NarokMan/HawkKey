@@ -48,3 +48,36 @@ void Rink::load_rink_mesh_from_file(const char* filename)
 
     fclose(file);
 }
+
+// Checks collision between mesh line segment with id 'id' and a puck WITH CENTER puck_x, puck_y and radius puck_radius
+// Returns true if puck overlaps the line
+bool Rink::check_rink_mesh_collision(int id, int puck_x, int puck_y, int puck_radius)
+{
+    int id_1 = id;
+	int id_2 = (id + 1) % rink_mesh.size();
+
+	// Vector from point 1 to point 2
+	float dx = rink_mesh[id_2].x - rink_mesh[id_1].x;
+	float dy = rink_mesh[id_2].y - rink_mesh[id_1].y;
+
+	// Vector from pofloat 1 to puck center
+	float fx = puck_x - rink_mesh[id_1].x;
+	float fy = puck_y - rink_mesh[id_1].y;
+
+    float t = (fx * dx + fy * dy) / (dx * dx + dy * dy);
+
+    if (t < 0.0f)
+        t = 0.0f;
+    else if (t > 1.0f)
+        t = 1.0f;
+
+	float closest_x = rink_mesh[id_1].x + t * dx;
+	float closest_y = rink_mesh[id_1].y + t * dy;
+
+	float dist_x = puck_x - closest_x;
+	float dist_y = puck_y - closest_y;
+
+	float distance_squared = dist_x * dist_x + dist_y * dist_y;
+
+    return distance_squared <= puck_radius * puck_radius;
+}

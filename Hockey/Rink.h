@@ -22,6 +22,7 @@ public:
 	void set_texture(SDL_Texture* new_texture);
 
 	void load_rink_mesh_from_file(const char* filename);
+	bool check_rink_mesh_collision(int id, int puck_x, int puck_y, int puck_radius);
 
 private:
 	float screen_x;

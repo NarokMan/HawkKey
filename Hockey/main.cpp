@@ -17,6 +17,8 @@
 #define WINDOW_WIDTH 1600
 #define WINDOW_HEIGHT 900
 
+#define TARGET_FPS 75
+
 struct controls {
 
     bool up = false;
@@ -253,13 +255,24 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);  /* new color, full alpha. */
 	for (int i = 0; i < rink.get_rink_mesh().size(); i++) {
         SDL_Point mesh_point = rink.get_rink_mesh_point(i);
-        SDL_FRect draw_point = { rink.get_screen_x(camera.get_x()) + mesh_point.x, rink.get_screen_y(camera.get_y()) + mesh_point.y, 4, 4 };
+
+        // Draw mesh nodes
+        //SDL_FRect draw_point = { rink.get_screen_x(camera.get_x()) + mesh_point.x, rink.get_screen_y(camera.get_y()) + mesh_point.y, 4, 4 };
         //SDL_RenderFillRect(renderer, &draw_point);
+
+        // Draw mesh lines
         SDL_RenderLine(renderer,
             rink.get_screen_x(camera.get_x()) + mesh_point.x,
             rink.get_screen_y(camera.get_y()) + mesh_point.y,
             rink.get_screen_x(camera.get_x()) + rink.get_rink_mesh_point((i + 1) % rink.get_rink_mesh().size()).x,
-			rink.get_screen_y(camera.get_y()) + rink.get_rink_mesh_point((i + 1) % rink.get_rink_mesh().size()).y);
+			rink.get_screen_y(camera.get_y()) + rink.get_rink_mesh_point((i + 1) % rink.get_rink_mesh().size()).y
+		);
+
+        if (rink.check_rink_mesh_collision(i, pucks[0].get_center_x(), pucks[0].get_center_y(), pucks[0].get_radius())) {
+            printf("Collision! At segment %d\n", i);
+
+        }
+
     }
 
 	// Calculate puck screen pos and draw
@@ -273,10 +286,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     /* put the newly-cleared rendering on the screen. */
     SDL_RenderPresent(renderer);
 
-    printf("X: %d, Y: %d\n", (int) pucks[0].get_rel_x(), (int) pucks[0].get_rel_y());
-
-    if (SDL_GetTicks() - frameStart < 20) {
-        SDL_Delay(20 - (SDL_GetTicks() - frameStart)); // Cap at ~75 FPS
+    if (SDL_GetTicks() - frameStart < (1000 / TARGET_FPS)) {
+        SDL_Delay((1000 / TARGET_FPS) - (SDL_GetTicks() - frameStart)); // Cap at ~75 FPS
 	}
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
