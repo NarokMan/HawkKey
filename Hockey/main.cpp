@@ -39,7 +39,7 @@ std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 1;
+int num_pucks = 9;
 std::vector<Puck> pucks;
 
 Camera camera;
@@ -141,7 +141,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     srand(time(NULL));
 
     for (int i = 0; i < num_pucks; i++) {
-        pucks.push_back(Puck(rand() % 3000, rand() % 1000, 5.0f, 10.0f, 10, textures[0])); // Creates pucks
+        pucks.push_back(Puck(rand() % 3000, rand() % 1000, rand() % 100 / 10 + 1, rand() % 100 / 10 + 1, 10, textures[0])); // Creates pucks
 	}
 
 	rink.set_texture(textures[1]); // Sets rink texture
@@ -285,8 +285,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
                 float reflected_angle = norm_angle + diff_angle;
 
-                pucks[j].set_vel_x(speed * 0.7 * cos(reflected_angle));
-                pucks[j].set_vel_y(speed * 0.7 * sin(reflected_angle));
+                pucks[j].set_vel_x(speed * 1 * cos(reflected_angle));
+                pucks[j].set_vel_y(speed * 1 * sin(reflected_angle));
 
                 while (rink.check_rink_mesh_collision(i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
                     pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
