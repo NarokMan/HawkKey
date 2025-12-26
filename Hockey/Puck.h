@@ -23,6 +23,7 @@ public:
 	SDL_FRect get_rect();
 	int get_center_x();
 	int get_center_y();
+	float get_total_velocity();
 
 	void set_rel_x(float new_rel_x);
 	void set_rel_y(float new_rel_y);

@@ -226,16 +226,16 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	frameStart = SDL_GetTicks();
 
     if (buttons.up) {
-        pucks[0].set_vel_y(pucks[0].get_vel_y() - 0.1f);
+        pucks[0].set_vel_y(pucks[0].get_vel_y() - 0.5f);
     }
     if (buttons.down) {
-        pucks[0].set_vel_y(pucks[0].get_vel_y() + 0.1f);
+        pucks[0].set_vel_y(pucks[0].get_vel_y() + 0.5f);
 	}
     if (buttons.left) {
-        pucks[0].set_vel_x(pucks[0].get_vel_x() - 0.1f);
+        pucks[0].set_vel_x(pucks[0].get_vel_x() - 0.5f);
 	}
     if (buttons.right) {
-        pucks[0].set_vel_x(pucks[0].get_vel_x() + 0.1f);
+        pucks[0].set_vel_x(pucks[0].get_vel_x() + 0.5f);
     }
 
     SDL_SetRenderDrawColorFloat(renderer, 0.3f, 0, 0, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
@@ -257,8 +257,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         SDL_Point mesh_point = rink.get_rink_mesh_point(i);
 
         // Draw mesh nodes
-        //SDL_FRect draw_point = { rink.get_screen_x(camera.get_x()) + mesh_point.x, rink.get_screen_y(camera.get_y()) + mesh_point.y, 4, 4 };
-        //SDL_RenderFillRect(renderer, &draw_point);
+        SDL_FRect draw_point = { rink.get_screen_x(camera.get_x()) + mesh_point.x, rink.get_screen_y(camera.get_y()) + mesh_point.y, 4, 4 };
+        SDL_RenderFillRect(renderer, &draw_point);
 
         // Draw mesh lines
         SDL_RenderLine(renderer,
@@ -277,16 +277,23 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                 float vel_x = pucks[j].get_vel_x();
                 float vel_y = pucks[j].get_vel_y();
                 float speed = sqrt(vel_x * vel_x + vel_y * vel_y);
-                float current_angle = atan2f(vel_y, vel_x);
+                
+                float norm_x = cos(norm_angle);
+                float norm_y = sin(norm_angle);
+                float tang_x = -norm_y; // Negative reciprocal of normal, perpendicular
+                float tang_y = norm_x;
 
-                float diff_angle = norm_angle - (current_angle - 3.14);
+                float vel_normal = vel_x * norm_x + vel_y * norm_y;
+                float vel_tangent = vel_x * tang_x + vel_y * tang_y;
 
-                //printf("Current_angle: %f, Diff angle: %f\n", current_angle, diff_angle);
+				vel_normal = -vel_normal * 0.6;
+				vel_tangent = vel_tangent * 0.95;
 
-                float reflected_angle = norm_angle + diff_angle;
+                vel_x = vel_normal * norm_x + vel_tangent * tang_x;
+                vel_y = vel_normal * norm_y + vel_tangent * tang_y;
 
-                pucks[j].set_vel_x(speed * 1 * cos(reflected_angle));
-                pucks[j].set_vel_y(speed * 1 * sin(reflected_angle));
+                pucks[j].set_vel_x(vel_x);
+                pucks[j].set_vel_y(vel_y);
 
                 while (rink.check_rink_mesh_collision(i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
                     pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
@@ -300,6 +307,19 @@ SDL_AppResult SDL_AppIterate(void* appstate)
             }
 
         }
+
+    }
+
+    for (int i = 0; i < num_pucks; i++) {
+
+        if (pucks[i].get_total_velocity() < 0.5) {
+            pucks[i].set_vel_x(0);
+            pucks[i].set_vel_y(0);
+        }
+
+        // Friction
+        pucks[i].multiply_vel_x(0.995f);
+        pucks[i].multiply_vel_y(0.995f);
 
     }
 

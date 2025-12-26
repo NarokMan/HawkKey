@@ -69,3 +69,6 @@ Version 0.9.0:
 - Implemented mesh collision model successfully. 
 - The puck bounces around in the correct way in the rounded
 corners.
+- The puck loses some energy in the opposite direction of 
+the wall's normal now on collision.
+- The puck continuously loses energy due to friction.

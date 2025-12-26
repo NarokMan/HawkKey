@@ -49,6 +49,7 @@ SDL_FRect Puck::get_rect() {
 }
 int Puck::get_center_x() { return rel_x + radius; }
 int Puck::get_center_y() { return rel_y + radius; }
+float Puck::get_total_velocity() { return sqrt(vel_x * vel_x + vel_y * vel_y); }
 
 void Puck::set_rel_x(float new_rel_x) { rel_x = new_rel_x; }
 void Puck::set_rel_y(float new_rel_y) { rel_y = new_rel_y; }
