@@ -39,7 +39,7 @@ std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 9;
+int num_pucks = 2;
 std::vector<Puck> pucks;
 
 Camera camera;
@@ -56,7 +56,7 @@ MIX_Mixer* mixer = NULL;
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
 
-    SDL_SetAppMetadata("SDL3 Window", "0.1", "com.narok.template"); // Sets app metadata
+    SDL_SetAppMetadata("SDL3 Window", "0.9.0", "com.narok.template"); // Sets app metadata
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         SDL_Log(ANSI_COLOR_RED "Couldn't initialize SDL: %s" ANSI_COLOR_RESET, SDL_GetError());

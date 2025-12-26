@@ -64,3 +64,8 @@ Version 0.8.0:
 - Switching to SDL3 and aiming to use a mesh-based
 collision system as opposed to the less organized
 trigonometry-based one from before.
+
+Version 0.9.0:
+- Implemented mesh collision model successfully. 
+- The puck bounces around in the correct way in the rounded
+corners.
