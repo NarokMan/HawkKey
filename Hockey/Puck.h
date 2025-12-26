@@ -24,6 +24,10 @@ public:
 	int get_center_x();
 	int get_center_y();
 
+	void set_rel_x(float new_rel_x);
+	void set_rel_y(float new_rel_y);
+	void multiply_vel_x(float factor);
+	void multiply_vel_y(float factor);
 	void set_vel_x(float new_vel_x);
 	void set_vel_y(float new_vel_y);
 	void set_radius(int new_radius);

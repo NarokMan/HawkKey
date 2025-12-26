@@ -39,7 +39,7 @@ std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 20;
+int num_pucks = 1;
 std::vector<Puck> pucks;
 
 Camera camera;
@@ -141,7 +141,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     srand(time(NULL));
 
     for (int i = 0; i < num_pucks; i++) {
-        pucks.push_back(Puck(rand() % 3000, rand() % 1000, 0.0f, 0.0f, 10, textures[0])); // Creates pucks
+        pucks.push_back(Puck(rand() % 3000, rand() % 1000, 5.0f, 10.0f, 10, textures[0])); // Creates pucks
 	}
 
 	rink.set_texture(textures[1]); // Sets rink texture
@@ -268,8 +268,36 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 			rink.get_screen_y(camera.get_y()) + rink.get_rink_mesh_point((i + 1) % rink.get_rink_mesh().size()).y
 		);
 
-        if (rink.check_rink_mesh_collision(i, pucks[0].get_center_x(), pucks[0].get_center_y(), pucks[0].get_radius())) {
-            printf("Collision detected at id: %d! Normal angle: %f\n", i, rink.get_normal(i));
+        for (int j = 0; j < num_pucks; j++) {
+
+            if (rink.check_rink_mesh_collision(i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
+                printf("Collision detected at id: %d! Normal angle: %f\n", i, rink.get_normal(i));
+                float norm_angle = rink.get_normal(i);
+
+                float vel_x = pucks[j].get_vel_x();
+                float vel_y = pucks[j].get_vel_y();
+                float speed = sqrt(vel_x * vel_x + vel_y * vel_y);
+                float current_angle = atan2f(vel_y, vel_x);
+
+                float diff_angle = norm_angle - (current_angle - 3.14);
+
+                //printf("Current_angle: %f, Diff angle: %f\n", current_angle, diff_angle);
+
+                float reflected_angle = norm_angle + diff_angle;
+
+                pucks[j].set_vel_x(speed * 0.7 * cos(reflected_angle));
+                pucks[j].set_vel_y(speed * 0.7 * sin(reflected_angle));
+
+                while (rink.check_rink_mesh_collision(i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
+                    pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
+                    pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
+                }
+
+                if (num_pucks < 2) {
+                    break;
+                }
+
+            }
 
         }
 

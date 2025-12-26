@@ -105,10 +105,10 @@ float Rink::get_normal(int id) {
     float dy = rink_mesh[id_2].y - rink_mesh[id_1].y;
 
 	// Normal vector
-    float normal_x = dy;
+    float normal_x = -dy;
     float normal_y = dx;
 
-	float angle = atan2f(normal_y, normal_x) + 3.141592653f; // Angle in radians
+	float angle = atan2f(normal_y, normal_x); // Angle in radians
 	angle = get_regular_func(angle);
 
 	return angle;
