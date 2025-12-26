@@ -269,7 +269,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 		);
 
         if (rink.check_rink_mesh_collision(i, pucks[0].get_center_x(), pucks[0].get_center_y(), pucks[0].get_radius())) {
-            printf("Collision! At segment %d\n", i);
+            printf("Collision detected at id: %d! Normal angle: %f\n", i, rink.get_normal(i));
 
         }
 

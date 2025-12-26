@@ -43,7 +43,6 @@ void Rink::load_rink_mesh_from_file(const char* filename)
     while (fscanf_s(file, "%d,%d", &x, &y) == 2) {
         SDL_Point point = { x, y };
         rink_mesh.push_back(point);
-		printf("Loaded rink mesh point: (%d, %d)\n", x, y);
     }
 
     fclose(file);
@@ -60,7 +59,7 @@ bool Rink::check_rink_mesh_collision(int id, int puck_x, int puck_y, int puck_ra
 	float dx = rink_mesh[id_2].x - rink_mesh[id_1].x;
 	float dy = rink_mesh[id_2].y - rink_mesh[id_1].y;
 
-	// Vector from pofloat 1 to puck center
+	// Vector from point 1 to puck center
 	float fx = puck_x - rink_mesh[id_1].x;
 	float fy = puck_y - rink_mesh[id_1].y;
 
@@ -80,4 +79,38 @@ bool Rink::check_rink_mesh_collision(int id, int puck_x, int puck_y, int puck_ra
 	float distance_squared = dist_x * dist_x + dist_y * dist_y;
 
     return distance_squared <= puck_radius * puck_radius;
+}
+
+float get_regular_func(float angle) {
+
+    while (angle > 3.141592653f) {
+		angle -= 2.0f * 3.141592653f;
+    }
+
+    while (angle < -3.141592653f) {
+        angle += 2.0f * 3.141592653f;
+    }
+
+	return angle;
+
+}
+
+float Rink::get_normal(int id) {
+
+    int id_1 = id;
+    int id_2 = (id + 1) % rink_mesh.size();
+
+    // Vector from point 1 to point 2
+    float dx = rink_mesh[id_2].x - rink_mesh[id_1].x;
+    float dy = rink_mesh[id_2].y - rink_mesh[id_1].y;
+
+	// Normal vector
+    float normal_x = dy;
+    float normal_y = dx;
+
+	float angle = atan2f(normal_y, normal_x) + 3.141592653f; // Angle in radians
+	angle = get_regular_func(angle);
+
+	return angle;
+
 }
