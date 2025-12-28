@@ -139,11 +139,13 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Puck.cpp" />
     <ClCompile Include="Rink.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="Puck.h" />
     <ClInclude Include="Rink.h" />
   </ItemGroup>

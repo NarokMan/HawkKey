@@ -4,11 +4,12 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <time.h>
+#include <vector>
 #include "Puck.h"
 #include "Rink.h"
 #include "Camera.h"
-#include <time.h>
-#include <vector>
+#include "Player.h"
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
@@ -25,6 +26,10 @@ struct controls {
     bool down = false;
     bool left = false;
 	bool right = false;
+	bool mouse_left = false;
+	bool mouse_right = false;
+	int mouseX = 0;
+	int mouseY = 0;
 
 };
 
@@ -34,13 +39,16 @@ struct controls buttons = { false, false, false, false };
 static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
 
-int num_textures = 2;
+int num_textures = 3;
 std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 2;
+int num_pucks = 5;
 std::vector<Puck> pucks;
+
+int num_players = 1;
+std::vector<Player> players;
 
 Camera camera;
 
@@ -138,11 +146,26 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         SDL_DestroySurface(temp_surface);
     }
 
+    temp_surface = SDL_LoadPNG("thingies/Eyes/placeholder_player.png");
+    if (temp_surface == NULL) {
+        SDL_Log(ANSI_COLOR_RED "Failed to load rink image: %s" ANSI_COLOR_RESET, SDL_GetError());
+        textures[2] = NULL;
+    }
+    else {
+        SDL_Log(ANSI_COLOR_GREEN "Loaded rink image successfully!" ANSI_COLOR_RESET);
+        textures[2] = SDL_CreateTextureFromSurface(renderer, temp_surface);
+        SDL_DestroySurface(temp_surface);
+    }
+
     srand(time(NULL));
 
     for (int i = 0; i < num_pucks; i++) {
         pucks.push_back(Puck(rand() % 3000, rand() % 1000, rand() % 100 / 10 + 1, rand() % 100 / 10 + 1, 10, textures[0])); // Creates pucks
 	}
+
+    for (int i = 0; i < num_players; i++) {
+        players.push_back(Player(rand() % 3000, rand() % 1000, 40, 0, textures[2])); // Creates players
+    }
 
 	rink.set_texture(textures[1]); // Sets rink texture
 	rink.load_rink_mesh_from_file("rink_outline.csv"); // Loads rink mesh from file
@@ -214,6 +237,42 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
         break;
 
+    case SDL_EVENT_MOUSE_MOTION:
+		buttons.mouseX = event->motion.x;
+		buttons.mouseY = event->motion.y;
+
+        break;
+
+    
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
+
+        switch (event->button.button) {
+
+        case SDL_BUTTON_LEFT:
+            buttons.mouse_left = true;
+            break;
+        case SDL_BUTTON_RIGHT:
+            buttons.mouse_right = true;
+            break;
+
+        }
+        break;
+
+    case SDL_EVENT_MOUSE_BUTTON_UP:
+
+        switch (event->button.button) {
+
+        case SDL_BUTTON_LEFT:
+            buttons.mouse_left = false;
+            break;
+        case SDL_BUTTON_RIGHT:
+            buttons.mouse_right = false;
+            break;
+
+        }
+        break;
+
+
     }
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
@@ -226,16 +285,16 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	frameStart = SDL_GetTicks();
 
     if (buttons.up) {
-        pucks[0].set_vel_y(pucks[0].get_vel_y() - 0.5f);
+        players[0].set_vel_y(players[0].get_vel_y() - 0.1f);
     }
     if (buttons.down) {
-        pucks[0].set_vel_y(pucks[0].get_vel_y() + 0.5f);
+        players[0].set_vel_y(players[0].get_vel_y() + 0.1f);
 	}
     if (buttons.left) {
-        pucks[0].set_vel_x(pucks[0].get_vel_x() - 0.5f);
+        players[0].set_vel_x(players[0].get_vel_x() - 0.1f);
 	}
     if (buttons.right) {
-        pucks[0].set_vel_x(pucks[0].get_vel_x() + 0.5f);
+        players[0].set_vel_x(players[0].get_vel_x() + 0.1f);
     }
 
     SDL_SetRenderDrawColorFloat(renderer, 0.3f, 0, 0, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
@@ -243,10 +302,14 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     /* clear the window to the draw color. */
     SDL_RenderClear(renderer);
     
+    for (int i = 0; i < players.size(); i++) {
+        players[i].update_position();
+    }
+
 	for (int i = 0; i < pucks.size(); i++) {
 		pucks[i].update_position();
     }
-    camera.adjust_cam_position(pucks[0].get_rel_x(), pucks[0].get_rel_y()); // center the camera on the puck
+    camera.adjust_cam_position(players[0].get_rel_x() + players[0].get_radius(), players[0].get_rel_y() + players[0].get_radius()); // center the camera on the puck
 
 	// Draw rink using camera position
     SDL_FRect rink_rect = { (float)rink.get_screen_x(camera.get_x()), (float)rink.get_screen_y(camera.get_y()), (float)rink.get_width(), (float)rink.get_height()};
@@ -257,8 +320,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         SDL_Point mesh_point = rink.get_rink_mesh_point(i);
 
         // Draw mesh nodes
-        SDL_FRect draw_point = { rink.get_screen_x(camera.get_x()) + mesh_point.x, rink.get_screen_y(camera.get_y()) + mesh_point.y, 4, 4 };
-        SDL_RenderFillRect(renderer, &draw_point);
+        //SDL_FRect draw_point = { rink.get_screen_x(camera.get_x()) + mesh_point.x, rink.get_screen_y(camera.get_y()) + mesh_point.y, 4, 4 };
+        //SDL_RenderFillRect(renderer, &draw_point);
 
         // Draw mesh lines
         SDL_RenderLine(renderer,
@@ -330,6 +393,17 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         puck_rect = pucks[i].get_rect();
         SDL_RenderTexture(renderer, pucks[i].get_texture(), NULL, &puck_rect);
     }
+
+    SDL_FRect player_rect;
+    for (int i = 0; i < players.size(); i++) {
+        players[i].update_screen_position(rink.get_screen_x(camera.get_x()), rink.get_screen_y(camera.get_y()));
+        player_rect = players[i].get_rect();
+        SDL_RenderTextureRotated(renderer, players[i].get_texture(), NULL, &player_rect, players[i].get_screen_angle(), NULL, SDL_FLIP_NONE);
+    }
+
+	// Player always points at mouse
+    players[0].set_screen_angle(atan2f((float)(buttons.mouseY - (players[0].get_screen_y(rink.get_screen_y(camera.get_y())) + players[0].get_radius())),
+		(float)(buttons.mouseX - (players[0].get_screen_x(rink.get_screen_x(camera.get_x())) + players[0].get_radius()))) * (180.0f / 3.14159f));
 
     /* put the newly-cleared rendering on the screen. */
     SDL_RenderPresent(renderer);
