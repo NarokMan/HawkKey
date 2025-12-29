@@ -44,7 +44,7 @@ std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 5;
+int num_pucks = 9;
 std::vector<Puck> pucks;
 
 int num_players = 1;
@@ -207,8 +207,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
             buttons.down = true;
             break;
         case SDL_SCANCODE_SPACE:
-			pucks[0].set_vel_x(0.0f);
-            pucks[0].set_vel_y(0.0f);
+			players[0].set_vel_x(0.0f);
+            players[0].set_vel_y(0.0f);
 			break;
         default:
             break;
@@ -334,7 +334,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         for (int j = 0; j < num_pucks; j++) {
 
             if (rink.check_rink_mesh_collision(i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
-                printf("Collision detected at id: %d! Normal angle: %f\n", i, rink.get_normal(i));
+                //printf("Collision detected at id: %d! Normal angle: %f\n", i, rink.get_normal(i));
                 float norm_angle = rink.get_normal(i);
 
                 float vel_x = pucks[j].get_vel_x();
@@ -397,8 +397,31 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     SDL_FRect player_rect;
     for (int i = 0; i < players.size(); i++) {
         players[i].update_screen_position(rink.get_screen_x(camera.get_x()), rink.get_screen_y(camera.get_y()));
+
+		for (int j = 0; j < num_pucks; j++) {
+            if (players[i].colliding_with_puck(pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
+                //printf("Player %d is colliding with puck %d!\n", i, j);
+
+				float dx = pucks[j].get_center_x() - players[i].get_center_x();
+				float dy = pucks[j].get_center_y() - players[i].get_center_y();
+				float angle = atan2f(dy, dx);
+
+				float distance = sqrt(dx * dx + dy * dy);
+				float overlap = players[i].get_radius() + pucks[j].get_radius() - distance;
+
+                pucks[j].set_rel_x(pucks[j].get_rel_x() + (overlap + 1) * cos(angle));
+                pucks[j].set_rel_y(pucks[j].get_rel_y() + (overlap + 1) * sin(angle));
+
+				pucks[j].set_vel_x(players[i].get_vel_x() + 1 * cos(angle));
+                pucks[j].set_vel_y(players[i].get_vel_y() + 1 * sin(angle));
+
+
+            }
+        }
+
         player_rect = players[i].get_rect();
         SDL_RenderTextureRotated(renderer, players[i].get_texture(), NULL, &player_rect, players[i].get_screen_angle(), NULL, SDL_FLIP_NONE);
+
     }
 
 	// Player always points at mouse

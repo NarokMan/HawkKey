@@ -1,6 +1,12 @@
 #pragma once
 #include <SDL3/SDL.h>
 
+enum player_states {
+	POSSESSING = 0,
+	NOT_POSSESSING_STABBING = 1,
+	NOT_POSSESSING_NOT_STABBING = 2
+};
+
 class Player
 {
 
@@ -20,6 +26,10 @@ public:
 	SDL_Texture* get_texture();
 	float get_screen_angle();
 	SDL_FRect get_rect();
+	int get_center_x();
+	int get_center_y();
+	player_states get_player_state();
+	bool colliding_with_puck(int puck_x, int puck_y, int puck_radius);
 
 	void set_rel_x(float new_rel_x);
 	void set_rel_y(float new_rel_y);
@@ -41,7 +51,10 @@ private:
 
 	float screen_angle;
 
+	SDL_Point center;
 	int radius;
+
+	player_states player_state;
 
 	SDL_Texture* texture;
 

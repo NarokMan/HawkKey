@@ -16,6 +16,8 @@ Player::Player(int start_x, int start_y, int r, float angle, SDL_Texture* tex)
 	rect.y = screen_y;
 	rect.w = radius * 2;
 	rect.h = radius * 2;
+
+	player_state = NOT_POSSESSING_NOT_STABBING;
 }
 
 void Player::update_position() {
@@ -44,6 +46,18 @@ SDL_FRect Player::get_rect() {
 	updated_rect.w = radius * 2;
 	updated_rect.h = radius * 2;
 	return updated_rect;
+}
+player_states Player::get_player_state() { return player_state; }
+int Player::get_center_x() { return rel_x + radius; }
+int Player::get_center_y() { return rel_y + radius; }
+bool Player::colliding_with_puck(int puck_x, int puck_y, int puck_radius) {
+	float dx = (rel_x + radius) - (puck_x);
+	float dy = (rel_y + radius) - (puck_y);
+	float distance = sqrt(dx * dx + dy * dy);
+	if (distance < radius + puck_radius) {
+		return true;
+	}
+	return false;
 }
 
 void Player::set_rel_x(float new_rel_x) { rel_x = new_rel_x; }

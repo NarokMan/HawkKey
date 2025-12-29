@@ -24,6 +24,7 @@ public:
 	int get_center_x();
 	int get_center_y();
 	float get_total_velocity();
+	bool is_possessed();
 
 	void set_rel_x(float new_rel_x);
 	void set_rel_y(float new_rel_y);
@@ -33,6 +34,7 @@ public:
 	void set_vel_y(float new_vel_y);
 	void set_radius(int new_radius);
 	void set_texture(SDL_Texture* new_texture);
+	void set_possessed(bool state);
 
 private:
 	int screen_x; // On-screen x position
@@ -44,5 +46,7 @@ private:
 	int radius;
 	SDL_Texture* texture;
 	SDL_Rect rect;
+
+	bool possessed;
 };
 

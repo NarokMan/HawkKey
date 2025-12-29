@@ -50,6 +50,7 @@ SDL_FRect Puck::get_rect() {
 int Puck::get_center_x() { return rel_x + radius; }
 int Puck::get_center_y() { return rel_y + radius; }
 float Puck::get_total_velocity() { return sqrt(vel_x * vel_x + vel_y * vel_y); }
+bool Puck::is_possessed() { return possessed; }
 
 void Puck::set_rel_x(float new_rel_x) { rel_x = new_rel_x; }
 void Puck::set_rel_y(float new_rel_y) { rel_y = new_rel_y; }
@@ -59,3 +60,4 @@ void Puck::set_vel_x(float new_vel_x) { vel_x = new_vel_x; }
 void Puck::set_vel_y(float new_vel_y) { vel_y = new_vel_y; }
 void Puck::set_radius(int new_radius) { radius = new_radius; }
 void Puck::set_texture(SDL_Texture* new_texture) { texture = new_texture; }
+void Puck::set_possessed(bool state) { possessed = state; }
