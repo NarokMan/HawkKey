@@ -16,7 +16,6 @@ Player::Player(int start_x, int start_y, int r, float angle, SDL_Texture* tex)
 	rect.y = screen_y;
 	rect.w = radius * 2;
 	rect.h = radius * 2;
-
 	player_state = NOT_POSSESSING_NOT_STABBING;
 }
 

@@ -12,6 +12,7 @@ Puck::Puck(int init_x, int init_y, float init_vel_x, float init_vel_y, int init_
 	screen_x = 0;
 	screen_y = 0;
 	rect = { screen_x, screen_y, radius * 2, radius * 2 };
+	possessed = false;
 }
 
 void Puck::update_position() {

@@ -51,7 +51,6 @@ private:
 
 	float screen_angle;
 
-	SDL_Point center;
 	int radius;
 
 	player_states player_state;
