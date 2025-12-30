@@ -1,9 +1,6 @@
 #include "Rink.h"
 #include <SDL3/SDL.h>
 
-#define WINDOW_WIDTH 1600
-#define WINDOW_HEIGHT 900
-
 Rink::Rink(int init_x, int init_y, int init_width, int init_height, SDL_Texture* init_texture)
 {
 	screen_x = init_x;

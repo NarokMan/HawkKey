@@ -30,6 +30,9 @@ public:
 	int get_center_y();
 	player_states get_player_state();
 	bool colliding_with_puck(int puck_x, int puck_y, int puck_radius);
+	bool stick_colliding_with_puck(int x1, int y1, int x2, int y2, int puck_x, int puck_y, int puck_radius);
+
+	bool is_left_of_stick(int puck_center_x, int puck_center_y);
 
 	void set_rel_x(float new_rel_x);
 	void set_rel_y(float new_rel_y);
@@ -52,6 +55,9 @@ private:
 	float screen_angle;
 
 	int radius;
+
+	int stick_end_x;
+	int stick_end_y;
 
 	player_states player_state;
 

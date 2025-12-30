@@ -15,9 +15,6 @@
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
-#define WINDOW_WIDTH 1600
-#define WINDOW_HEIGHT 900
-
 #define TARGET_FPS 75
 
 struct controls {
@@ -417,10 +414,79 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
 
             }
+
+            if (players[i].stick_colliding_with_puck(
+                players[i].get_center_x(),
+				players[i].get_center_y(),
+				players[i].get_center_x() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
+				players[i].get_center_y() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f)),
+                pucks[j].get_center_x(),
+                pucks[j].get_center_y(),
+                pucks[j].get_radius()
+            )) {
+                printf("Player %d's stick is colliding with puck %d!\n", i, j);
+
+				float norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) + 1.57;
+
+                if (players[i].is_left_of_stick(pucks[j].get_center_x(), pucks[j].get_center_y())) {
+
+                    norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) + 1.57;
+
+                }
+                else {
+
+                    norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) - 1.57;
+
+                }
+
+                printf("%f\n", players[i].get_screen_angle());
+
+                float vel_x = pucks[j].get_vel_x();
+                float vel_y = pucks[j].get_vel_y();
+                float speed = sqrt(vel_x * vel_x + vel_y * vel_y);
+
+                float norm_x = cos(norm_angle);
+                float norm_y = sin(norm_angle);
+                float tang_x = -norm_y; // Negative reciprocal of normal, perpendicular
+                float tang_y = norm_x;
+
+                float vel_normal = vel_x * norm_x + vel_y * norm_y;
+                float vel_tangent = vel_x * tang_x + vel_y * tang_y;
+
+                vel_normal = -vel_normal * 1.1;
+                vel_tangent = vel_tangent * 1.1;
+
+                vel_x = vel_normal * norm_x + vel_tangent * tang_x;
+                vel_y = vel_normal * norm_y + vel_tangent * tang_y;
+
+                pucks[j].set_vel_x(vel_x);
+                pucks[j].set_vel_y(vel_y);
+
+                while (players[i].stick_colliding_with_puck(players[i].get_center_x(),
+				    players[i].get_center_y(),
+				    players[i].get_center_x() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
+				    players[i].get_center_y() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f)),
+                    pucks[j].get_center_x(),
+                    pucks[j].get_center_y(),
+                    pucks[j].get_radius())) {
+                        pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
+                        pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
+                        pucks[j].set_vel_x(pucks[j].get_vel_x() + 1 * cos(norm_angle));
+                        pucks[j].set_vel_y(pucks[j].get_vel_y() + 1 * sin(norm_angle));
+                }
+            }
+
         }
 
         player_rect = players[i].get_rect();
         SDL_RenderTextureRotated(renderer, players[i].get_texture(), NULL, &player_rect, players[i].get_screen_angle(), NULL, SDL_FLIP_NONE);
+
+        SDL_RenderLine(renderer, 
+            players[i].get_screen_x(rink.get_screen_x(camera.get_x())) + players[i].get_radius(),
+            players[i].get_screen_y(rink.get_screen_y(camera.get_y())) + players[i].get_radius(),
+            players[i].get_screen_x(rink.get_screen_x(camera.get_x())) + players[i].get_radius() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
+            players[i].get_screen_y(rink.get_screen_y(camera.get_y())) + players[i].get_radius() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f))
+		);
 
     }
 
