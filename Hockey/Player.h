@@ -7,11 +7,13 @@ enum player_states {
 	NOT_POSSESSING_NOT_STABBING = 2
 };
 
+class Puck;
+
 class Player
 {
 
 public:
-	Player(int start_x, int start_y, int r, float angle, SDL_Texture* tex);
+	Player(int start_x, int start_y, int r, float angle, SDL_Texture* tex, Puck* possessing_puck);
 
 	void update_position();
 	void update_screen_position(int rink_x, int rink_y);
@@ -40,7 +42,9 @@ public:
 	void set_vel_x(float new_vel_x);
 	void set_vel_y(float new_vel_y);
 	void set_target_angle(float new_angle);
+	void set_player_state(player_states player_state);
 
+	Puck* possessed_puck;
 
 private:
 	int screen_x;
@@ -57,9 +61,6 @@ private:
 	float target_angle;
 
 	int radius;
-
-	int stick_end_x;
-	int stick_end_y;
 
 	player_states player_state;
 

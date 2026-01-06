@@ -157,11 +157,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     srand(time(NULL));
 
     for (int i = 0; i < num_pucks; i++) {
-        pucks.push_back(Puck(rand() % 3000, rand() % 1000, rand() % 100 / 10 + 1, rand() % 100 / 10 + 1, 10, textures[0])); // Creates pucks
+        pucks.push_back(Puck(rand() % 3000, rand() % 1000, rand() % 100 / 10 + 1, rand() % 100 / 10 + 1, 10, textures[0], nullptr)); // Creates pucks
 	}
 
     for (int i = 0; i < num_players; i++) {
-        players.push_back(Player(rand() % 3000, rand() % 1000, 40, 0, textures[2])); // Creates players
+        players.push_back(Player(rand() % 3000, rand() % 1000, 40, 0, textures[2], nullptr));
     }
 
 	rink.set_texture(textures[1]); // Sets rink texture
@@ -413,67 +413,26 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                 pucks[j].set_vel_y(players[i].get_vel_y() + 1 * sin(angle));
 
 
-            }
+                if (pucks[j].possessing_player == nullptr) {
 
-            if (players[i].stick_colliding_with_puck(
-                players[i].get_center_x(),
-				players[i].get_center_y(),
-				players[i].get_center_x() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-				players[i].get_center_y() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-                pucks[j].get_center_x(),
-                pucks[j].get_center_y(),
-                pucks[j].get_radius()
-            )) {
-                printf("Player %d's stick is colliding with puck %d!\n", i, j);
+                    printf("Collision with unpossessed puck!\n");
 
-				float norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) + 1.57;
+                    // Determines course of action based on player_state: 
+                    // POSSESSING = 0,
+                    // NOT_POSSESSING_STABBING = 1,
+                    // NOT_POSSESSING_NOT_STABBING = 2
+                    switch (players[i].get_player_state()) {
 
-                if (players[i].is_left_of_stick(pucks[j].get_center_x(), pucks[j].get_center_y())) {
+                    case NOT_POSSESSING_NOT_STABBING:
 
-                    norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) + 1.57;
+                        pucks[j].possessing_player = &players[i];
+                        players[i].set_player_state(POSSESSING);
+                        break;
 
-                }
-                else {
-
-                    norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) - 1.57;
+                    }
 
                 }
 
-                printf("%f\n", players[i].get_screen_angle());
-
-                float vel_x = pucks[j].get_vel_x();
-                float vel_y = pucks[j].get_vel_y();
-                float speed = sqrt(vel_x * vel_x + vel_y * vel_y);
-
-                float norm_x = cos(norm_angle);
-                float norm_y = sin(norm_angle);
-                float tang_x = -norm_y; // Negative reciprocal of normal, perpendicular
-                float tang_y = norm_x;
-
-                float vel_normal = vel_x * norm_x + vel_y * norm_y;
-                float vel_tangent = vel_x * tang_x + vel_y * tang_y;
-
-                vel_normal = -vel_normal * 1.1;
-                vel_tangent = vel_tangent * 1.1;
-
-                vel_x = vel_normal * norm_x + vel_tangent * tang_x;
-                vel_y = vel_normal * norm_y + vel_tangent * tang_y;
-
-                pucks[j].set_vel_x(vel_x);
-                pucks[j].set_vel_y(vel_y);
-
-                while (players[i].stick_colliding_with_puck(players[i].get_center_x(),
-				    players[i].get_center_y(),
-				    players[i].get_center_x() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-				    players[i].get_center_y() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-                    pucks[j].get_center_x(),
-                    pucks[j].get_center_y(),
-                    pucks[j].get_radius())) {
-                        pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
-                        pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
-                        pucks[j].set_vel_x(pucks[j].get_vel_x() + 0.9 * cos(norm_angle));
-                        pucks[j].set_vel_y(pucks[j].get_vel_y() + 0.9 * sin(norm_angle));
-                }
             }
 
         }
@@ -481,16 +440,9 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         player_rect = players[i].get_rect();
         SDL_RenderTextureRotated(renderer, players[i].get_texture(), NULL, &player_rect, players[i].get_screen_angle(), NULL, SDL_FLIP_NONE);
 
-        SDL_RenderLine(renderer, 
-            players[i].get_screen_x(rink.get_screen_x(camera.get_x())) + players[i].get_radius(),
-            players[i].get_screen_y(rink.get_screen_y(camera.get_y())) + players[i].get_radius(),
-            players[i].get_screen_x(rink.get_screen_x(camera.get_x())) + players[i].get_radius() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-            players[i].get_screen_y(rink.get_screen_y(camera.get_y())) + players[i].get_radius() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f))
-		);
-
     }
 
-	// Player always points at mouse
+	// Player's target angle is always at the mouse
     players[0].set_target_angle(atan2f((float)(buttons.mouseY - (players[0].get_screen_y(rink.get_screen_y(camera.get_y())) + players[0].get_radius())),
 		(float)(buttons.mouseX - (players[0].get_screen_x(rink.get_screen_x(camera.get_x())) + players[0].get_radius()))) * (180.0f / 3.14159f));
 
