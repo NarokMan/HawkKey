@@ -471,8 +471,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                     pucks[j].get_radius())) {
                         pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
                         pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
-                        pucks[j].set_vel_x(pucks[j].get_vel_x() + 1 * cos(norm_angle));
-                        pucks[j].set_vel_y(pucks[j].get_vel_y() + 1 * sin(norm_angle));
+                        pucks[j].set_vel_x(pucks[j].get_vel_x() + 0.9 * cos(norm_angle));
+                        pucks[j].set_vel_y(pucks[j].get_vel_y() + 0.9 * sin(norm_angle));
                 }
             }
 
@@ -491,8 +491,10 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     }
 
 	// Player always points at mouse
-    players[0].set_screen_angle(atan2f((float)(buttons.mouseY - (players[0].get_screen_y(rink.get_screen_y(camera.get_y())) + players[0].get_radius())),
+    players[0].set_target_angle(atan2f((float)(buttons.mouseY - (players[0].get_screen_y(rink.get_screen_y(camera.get_y())) + players[0].get_radius())),
 		(float)(buttons.mouseX - (players[0].get_screen_x(rink.get_screen_x(camera.get_x())) + players[0].get_radius()))) * (180.0f / 3.14159f));
+
+	players[0].update_stick_angle();
 
     /* put the newly-cleared rendering on the screen. */
     SDL_RenderPresent(renderer);

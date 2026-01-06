@@ -15,6 +15,7 @@ public:
 
 	void update_position();
 	void update_screen_position(int rink_x, int rink_y);
+	void update_stick_angle();
 
 	int get_screen_x(int rink_x);
 	int get_screen_y(int rink_y);
@@ -38,7 +39,7 @@ public:
 	void set_rel_y(float new_rel_y);
 	void set_vel_x(float new_vel_x);
 	void set_vel_y(float new_vel_y);
-	void set_screen_angle(float new_angle);
+	void set_target_angle(float new_angle);
 
 
 private:
@@ -53,6 +54,7 @@ private:
 	float vel_y;
 
 	float screen_angle;
+	float target_angle;
 
 	int radius;
 

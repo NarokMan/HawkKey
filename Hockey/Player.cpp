@@ -86,7 +86,7 @@ bool Player::stick_colliding_with_puck(int x1, int y1, int x2, int y2, int puck_
 
 	float distance_squared = dist_x * dist_x + dist_y * dist_y;
 
-	return distance_squared <= puck_radius * puck_radius;
+	return distance_squared <= puck_radius * puck_radius * 4;
 }
 
 // Random cross product thing I found on stack overflow
@@ -104,8 +104,33 @@ bool Player::is_left_of_stick(int puck_center_x, int puck_center_y) {
 	return cross > 0;
 }
 
+int angle_turn_direction(float screen_angle, float target_angle) {
+	// Calculate shortest angular difference
+	float diff = target_angle - screen_angle;
+	// Wrap difference
+	while (diff > 180) diff -= 2 * 180;
+	while (diff < -180) diff += 2 * 180;
+
+	// If diff is positive, turn counter-clockwise (increase angle)
+	// If diff is negative, turn clockwise (decrease angle)
+	if (diff > 3.0f) return 1;   // Increase (turn left)
+	if (diff < -3.0f) return -1; // Decrease (turn right)
+	return 0; // Close enough, no turn needed
+}
+
+void Player::update_stick_angle() {
+
+	if (angle_turn_direction(screen_angle, target_angle) == 1) {
+		screen_angle += 5.0f; // Turn left
+	}
+	else if (angle_turn_direction(screen_angle, target_angle) == -1) {
+		screen_angle -= 5.0f; // Turn right
+	}
+
+}
+
 void Player::set_rel_x(float new_rel_x) { rel_x = new_rel_x; }
 void Player::set_rel_y(float new_rel_y) { rel_y = new_rel_y; }
 void Player::set_vel_x(float new_vel_x) { vel_x = new_vel_x; }
 void Player::set_vel_y(float new_vel_y) { vel_y = new_vel_y; }
-void Player::set_screen_angle(float new_angle) { screen_angle = new_angle; }
+void Player::set_target_angle(float new_angle) { target_angle = new_angle; }
