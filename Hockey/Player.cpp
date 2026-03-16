@@ -1,7 +1,8 @@
 #include "Player.h"
+#include "Puck.h"
 #include <SDL3/SDL.h>
 
-Player::Player(int start_x, int start_y, int r, float angle, SDL_Texture* tex)
+Player::Player(int start_x, int start_y, int r, float angle, SDL_Texture* tex, Puck* possessing_puck)
 {
 	texture = tex;
 	rel_x = start_x;
@@ -14,11 +15,11 @@ Player::Player(int start_x, int start_y, int r, float angle, SDL_Texture* tex)
 	screen_angle = angle;
 	rect.x = screen_x;
 	rect.y = screen_y;
-	rect.w = radius * 2;
-	rect.h = radius * 2;
+	rect.w = this->radius * 2;
+	rect.h = this->radius * 2;
 	player_state = NOT_POSSESSING_NOT_STABBING;
-	stick_end_x = 0;
-	stick_end_y = 0;
+	possessed_puck = possessing_puck;
+	target_angle = angle;
 }
 
 void Player::update_position() {
@@ -39,7 +40,19 @@ float Player::get_vel_x() { return vel_x; }
 float Player::get_vel_y() { return vel_y; }
 int Player::get_radius() { return radius; }
 SDL_Texture* Player::get_texture() { return texture; }
-float Player::get_screen_angle() { return screen_angle; }
+
+float Player::get_screen_angle() { 
+	
+	while (screen_angle > 360) {
+		screen_angle -= 360;
+	}
+	while (screen_angle < 0) {
+		screen_angle += 360;
+	}
+	
+	return screen_angle; 
+}
+
 SDL_FRect Player::get_rect() {
 	SDL_FRect updated_rect;
 	updated_rect.x = screen_x;
@@ -89,6 +102,27 @@ bool Player::stick_colliding_with_puck(int x1, int y1, int x2, int y2, int puck_
 	return distance_squared <= puck_radius * puck_radius * 4;
 }
 
+bool Player::is_facing_puck(float angle_to_puck, float angle_threshold) {
+
+	// Normalize angle
+	float normalized_player_angle = fmod(screen_angle, 360);
+	if (normalized_player_angle < 0) normalized_player_angle += 360;
+
+	float normalized_puck_angle = fmod(angle_to_puck, 360);
+	if (normalized_puck_angle < 0) normalized_puck_angle += 360;
+
+	float angle_diff = fabs(normalized_player_angle - normalized_puck_angle);
+
+	// Handle wraparound
+	if (angle_diff > 180) {
+		angle_diff = 360 - angle_diff;
+	}
+
+	// Check if within threshold
+	return angle_diff < angle_threshold;
+}
+
+/*
 // Random cross product thing I found on stack overflow
 bool Player::is_left_of_stick(int puck_center_x, int puck_center_y) {
 
@@ -103,6 +137,7 @@ bool Player::is_left_of_stick(int puck_center_x, int puck_center_y) {
 
 	return cross > 0;
 }
+*/
 
 int angle_turn_direction(float screen_angle, float target_angle) {
 	// Calculate shortest angular difference
@@ -121,10 +156,10 @@ int angle_turn_direction(float screen_angle, float target_angle) {
 void Player::update_stick_angle() {
 
 	if (angle_turn_direction(screen_angle, target_angle) == 1) {
-		screen_angle += 5.0f; // Turn left
+		screen_angle += 4.0f; // Turn left
 	}
 	else if (angle_turn_direction(screen_angle, target_angle) == -1) {
-		screen_angle -= 5.0f; // Turn right
+		screen_angle -= 4.0f; // Turn right
 	}
 
 }
@@ -134,3 +169,4 @@ void Player::set_rel_y(float new_rel_y) { rel_y = new_rel_y; }
 void Player::set_vel_x(float new_vel_x) { vel_x = new_vel_x; }
 void Player::set_vel_y(float new_vel_y) { vel_y = new_vel_y; }
 void Player::set_target_angle(float new_angle) { target_angle = new_angle; }
+void Player::set_player_state(player_states new_state) { player_state = new_state; }

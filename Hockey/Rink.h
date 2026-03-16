@@ -2,8 +2,8 @@
 #include <SDL3/SDL.h>
 #include <vector>
 
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
 
 class Rink
 {

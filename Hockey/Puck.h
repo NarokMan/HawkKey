@@ -1,16 +1,16 @@
 #pragma once
 #include <SDL3/SDL.h>
 
+class Player;
+
 class Puck
 {
 
 public:
 
-	Puck(int start_x, int start_y, float start_vel_x, float start_vel_y, int start_radius, SDL_Texture* start_texture);
+	Puck(int start_x, int start_y, float start_vel_x, float start_vel_y, int start_radius, SDL_Texture* start_texture, Player* possessing_player);
 	void update_position();
 	void update_screen_position(int rink_x, int rink_y);
-
-	bool check_collision_with_rink(int x1, int y1, int x2, int y2);
 
 	int get_screen_x(int rink_x);
 	int get_screen_y(int rink_y);
@@ -24,7 +24,6 @@ public:
 	int get_center_x();
 	int get_center_y();
 	float get_total_velocity();
-	bool is_possessed();
 
 	void set_rel_x(float new_rel_x);
 	void set_rel_y(float new_rel_y);
@@ -34,7 +33,8 @@ public:
 	void set_vel_y(float new_vel_y);
 	void set_radius(int new_radius);
 	void set_texture(SDL_Texture* new_texture);
-	void set_possessed(bool state);
+
+	Player* possessing_player;
 
 private:
 	int screen_x; // On-screen x position
@@ -47,6 +47,5 @@ private:
 	SDL_Texture* texture;
 	SDL_Rect rect;
 
-	bool possessed;
 };
 

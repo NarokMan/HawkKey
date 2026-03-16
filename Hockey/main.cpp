@@ -32,6 +32,9 @@ struct controls {
 
 struct controls buttons = { false, false, false, false };
 
+bool charging_shot = false;
+SDL_Time charge_shot_begin = 0;
+
  /* We will use this renderer to draw into this window every frame. */
 static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
@@ -41,7 +44,7 @@ std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 9;
+int num_pucks = 10;
 std::vector<Puck> pucks;
 
 int num_players = 1;
@@ -157,11 +160,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     srand(time(NULL));
 
     for (int i = 0; i < num_pucks; i++) {
-        pucks.push_back(Puck(rand() % 3000, rand() % 1000, rand() % 100 / 10 + 1, rand() % 100 / 10 + 1, 10, textures[0])); // Creates pucks
+        pucks.push_back(Puck(rand() % 3000, rand() % 1000, rand() % 100 / 10 + 1, rand() % 100 / 10 + 1, 10, textures[0], nullptr)); // Creates pucks
 	}
 
     for (int i = 0; i < num_players; i++) {
-        players.push_back(Player(rand() % 3000, rand() % 1000, 40, 0, textures[2])); // Creates players
+        players.push_back(Player(rand() % 3000, rand() % 1000, 40, 0, textures[2], nullptr));
     }
 
 	rink.set_texture(textures[1]); // Sets rink texture
@@ -191,22 +194,22 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         case SDL_SCANCODE_ESCAPE:
             return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
             break;
-        case SDL_SCANCODE_RIGHT:
+        case SDL_SCANCODE_D:
             buttons.right = true;
             break;
-        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_A:
             buttons.left = true;
             break;
-        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_W:
             buttons.up = true;
             break;
-        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_S:
             buttons.down = true;
             break;
         case SDL_SCANCODE_SPACE:
-			players[0].set_vel_x(0.0f);
+            players[0].set_vel_x(0.0f);
             players[0].set_vel_y(0.0f);
-			break;
+            break;
         default:
             break;
         }
@@ -216,16 +219,16 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
     case SDL_EVENT_KEY_UP:
 
         switch (event->key.scancode) {
-        case SDL_SCANCODE_RIGHT:
+        case SDL_SCANCODE_D:
             buttons.right = false;
             break;
-        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_A:
             buttons.left = false;
             break;
-        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_W:
             buttons.up = false;
             break;
-        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_S:
             buttons.down = false;
             break;
         default:
@@ -247,6 +250,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
         case SDL_BUTTON_LEFT:
             buttons.mouse_left = true;
+			charging_shot = true;
+			charge_shot_begin = SDL_GetTicks();
             break;
         case SDL_BUTTON_RIGHT:
             buttons.mouse_right = true;
@@ -261,6 +266,24 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
         case SDL_BUTTON_LEFT:
             buttons.mouse_left = false;
+			charging_shot = false;
+            
+            if (players[0].possessed_puck != nullptr) {
+
+				float charge_coeff = (SDL_GetTicks() - charge_shot_begin) / 500.0f; // Charge coefficient based on how long the shot was charged, in seconds
+                if (charge_coeff > 3.0f) {
+                    charge_coeff = 3.0f; // Cap the charge coefficient at 3 seconds
+				}
+
+				players[0].possessed_puck->possessing_player = nullptr; // Drop the puck
+				players[0].possessed_puck->set_vel_x(players[0].get_vel_x() + cos(players[0].get_screen_angle() * (3.14159f / 180.0f)) * charge_coeff * 10); // Shoot the puck in the direction the player is facing, with velocity based on charge time
+				players[0].possessed_puck->set_vel_y(players[0].get_vel_y() + sin(players[0].get_screen_angle() * (3.14159f / 180.0f)) * charge_coeff * 10);
+				players[0].possessed_puck = nullptr; // Player no longer possesses the puck
+				players[0].set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
+
+            }
+
+			charge_shot_begin = 0;
             break;
         case SDL_BUTTON_RIGHT:
             buttons.mouse_right = false;
@@ -360,8 +383,60 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                     pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
                 }
 
+                if (pucks[j].possessing_player != nullptr) {
+
+                    pucks[j].possessing_player->possessed_puck = nullptr; // Drop the puck
+                    pucks[j].possessing_player->set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
+                    pucks[j].possessing_player = nullptr; // Player no longer possesses the puck
+
+                }
+
                 if (num_pucks < 2) {
                     break;
+                }
+
+            }
+
+        }
+
+        for (int j = 0; j < num_players; j++) {
+
+            if (rink.check_rink_mesh_collision(i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
+
+                float norm_angle = rink.get_normal(i);
+
+                float vel_x = players[j].get_vel_x();
+                float vel_y = players[j].get_vel_y();
+                float speed = sqrt(vel_x * vel_x + vel_y * vel_y);
+
+                float norm_x = cos(norm_angle);
+                float norm_y = sin(norm_angle);
+                float tang_x = -norm_y; // Negative reciprocal of normal, perpendicular
+                float tang_y = norm_x;
+
+                float vel_normal = vel_x * norm_x + vel_y * norm_y;
+                float vel_tangent = vel_x * tang_x + vel_y * tang_y;
+
+                vel_normal = -vel_normal * 0.05;
+                vel_tangent = vel_tangent * 0.8;
+
+                vel_x = vel_normal * norm_x + vel_tangent * tang_x;
+                vel_y = vel_normal * norm_y + vel_tangent * tang_y;
+
+                players[j].set_vel_x(vel_x);
+                players[j].set_vel_y(vel_y);
+
+                while (rink.check_rink_mesh_collision(i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
+                    players[j].set_rel_x(players[j].get_rel_x() + 1 * cos(norm_angle));
+                    players[j].set_rel_y(players[j].get_rel_y() + 1 * sin(norm_angle));
+                }
+
+                if (players[j].possessed_puck != nullptr) {
+
+                    players[j].possessed_puck->possessing_player = nullptr; // Drop the puck
+                    players[j].possessed_puck = nullptr; // Player no longer possesses the puck
+                    players[j].set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
+
                 }
 
             }
@@ -412,68 +487,27 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 				pucks[j].set_vel_x(players[i].get_vel_x() + 1 * cos(angle));
                 pucks[j].set_vel_y(players[i].get_vel_y() + 1 * sin(angle));
 
+                if (pucks[j].possessing_player == nullptr && players[i].is_facing_puck(angle * 180 / 3.14, 45)) {
 
-            }
+                    printf("Collision with unpossessed puck!\n");
 
-            if (players[i].stick_colliding_with_puck(
-                players[i].get_center_x(),
-				players[i].get_center_y(),
-				players[i].get_center_x() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-				players[i].get_center_y() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-                pucks[j].get_center_x(),
-                pucks[j].get_center_y(),
-                pucks[j].get_radius()
-            )) {
-                printf("Player %d's stick is colliding with puck %d!\n", i, j);
+                    // Determines course of action based on player_state: 
+                    // POSSESSING = 0,
+                    // NOT_POSSESSING_STABBING = 1,
+                    // NOT_POSSESSING_NOT_STABBING = 2
+                    switch (players[i].get_player_state()) {
 
-				float norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) + 1.57;
+                    case NOT_POSSESSING_NOT_STABBING:
 
-                if (players[i].is_left_of_stick(pucks[j].get_center_x(), pucks[j].get_center_y())) {
+                        pucks[j].possessing_player = &players[i];
+						players[i].possessed_puck = &pucks[j];
+                        players[i].set_player_state(POSSESSING);
+                        break;
 
-                    norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) + 1.57;
-
-                }
-                else {
-
-                    norm_angle = players[i].get_screen_angle() * (3.14159f / 180.0f) - 1.57;
+                    }
 
                 }
 
-                printf("%f\n", players[i].get_screen_angle());
-
-                float vel_x = pucks[j].get_vel_x();
-                float vel_y = pucks[j].get_vel_y();
-                float speed = sqrt(vel_x * vel_x + vel_y * vel_y);
-
-                float norm_x = cos(norm_angle);
-                float norm_y = sin(norm_angle);
-                float tang_x = -norm_y; // Negative reciprocal of normal, perpendicular
-                float tang_y = norm_x;
-
-                float vel_normal = vel_x * norm_x + vel_y * norm_y;
-                float vel_tangent = vel_x * tang_x + vel_y * tang_y;
-
-                vel_normal = -vel_normal * 1.1;
-                vel_tangent = vel_tangent * 1.1;
-
-                vel_x = vel_normal * norm_x + vel_tangent * tang_x;
-                vel_y = vel_normal * norm_y + vel_tangent * tang_y;
-
-                pucks[j].set_vel_x(vel_x);
-                pucks[j].set_vel_y(vel_y);
-
-                while (players[i].stick_colliding_with_puck(players[i].get_center_x(),
-				    players[i].get_center_y(),
-				    players[i].get_center_x() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-				    players[i].get_center_y() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-                    pucks[j].get_center_x(),
-                    pucks[j].get_center_y(),
-                    pucks[j].get_radius())) {
-                        pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
-                        pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
-                        pucks[j].set_vel_x(pucks[j].get_vel_x() + 0.9 * cos(norm_angle));
-                        pucks[j].set_vel_y(pucks[j].get_vel_y() + 0.9 * sin(norm_angle));
-                }
             }
 
         }
@@ -481,16 +515,9 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         player_rect = players[i].get_rect();
         SDL_RenderTextureRotated(renderer, players[i].get_texture(), NULL, &player_rect, players[i].get_screen_angle(), NULL, SDL_FLIP_NONE);
 
-        SDL_RenderLine(renderer, 
-            players[i].get_screen_x(rink.get_screen_x(camera.get_x())) + players[i].get_radius(),
-            players[i].get_screen_y(rink.get_screen_y(camera.get_y())) + players[i].get_radius(),
-            players[i].get_screen_x(rink.get_screen_x(camera.get_x())) + players[i].get_radius() + 120 * cos(players[i].get_screen_angle() * (3.14159f / 180.0f)),
-            players[i].get_screen_y(rink.get_screen_y(camera.get_y())) + players[i].get_radius() + 120 * sin(players[i].get_screen_angle() * (3.14159f / 180.0f))
-		);
-
     }
 
-	// Player always points at mouse
+	// Player's target angle is always at the mouse
     players[0].set_target_angle(atan2f((float)(buttons.mouseY - (players[0].get_screen_y(rink.get_screen_y(camera.get_y())) + players[0].get_radius())),
 		(float)(buttons.mouseX - (players[0].get_screen_x(rink.get_screen_x(camera.get_x())) + players[0].get_radius()))) * (180.0f / 3.14159f));
 
