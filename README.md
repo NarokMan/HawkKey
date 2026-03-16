@@ -72,3 +72,13 @@ corners.
 - The puck loses some energy in the opposite direction of 
 the wall's normal now on collision.
 - The puck continuously loses energy due to friction.
+
+Version 0.10.0:
+- Switched to branch Possession 2, changing physics-based
+  stick collision gameplay out for fifa-like snappy
+  possession. Merged into main.
+- The player loses the puck when it or the player holding
+  it hits the wall
+- The player now has collision with the wall
+- The player can now shoot the puck with left click
+- Swapped out arrow key-based movement with wasd
