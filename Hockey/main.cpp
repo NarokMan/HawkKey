@@ -191,22 +191,22 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         case SDL_SCANCODE_ESCAPE:
             return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
             break;
-        case SDL_SCANCODE_RIGHT:
+        case SDL_SCANCODE_D:
             buttons.right = true;
             break;
-        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_A:
             buttons.left = true;
             break;
-        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_W:
             buttons.up = true;
             break;
-        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_S:
             buttons.down = true;
             break;
         case SDL_SCANCODE_SPACE:
-			players[0].set_vel_x(0.0f);
+            players[0].set_vel_x(0.0f);
             players[0].set_vel_y(0.0f);
-			break;
+            break;
         default:
             break;
         }
@@ -216,16 +216,16 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
     case SDL_EVENT_KEY_UP:
 
         switch (event->key.scancode) {
-        case SDL_SCANCODE_RIGHT:
+        case SDL_SCANCODE_D:
             buttons.right = false;
             break;
-        case SDL_SCANCODE_LEFT:
+        case SDL_SCANCODE_A:
             buttons.left = false;
             break;
-        case SDL_SCANCODE_UP:
+        case SDL_SCANCODE_W:
             buttons.up = false;
             break;
-        case SDL_SCANCODE_DOWN:
+        case SDL_SCANCODE_S:
             buttons.down = false;
             break;
         default:
