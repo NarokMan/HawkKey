@@ -18,12 +18,13 @@ Puck::Puck(int init_x, int init_y, float init_vel_x, float init_vel_y, int init_
 
 void Puck::update_position() {
 
-	float player_center_x = possessing_player->get_rel_x() + possessing_player->get_radius();
-	float player_center_y = possessing_player->get_rel_y() + possessing_player->get_radius();
-
 	if (possessing_player != nullptr) {
-		rel_x = player_center_x - radius + cos(possessing_player->get_screen_angle() * (3.14159f / 180.0f)) * (possessing_player->get_radius() + radius * 2);
-		rel_y = player_center_y - radius + sin(possessing_player->get_screen_angle() * (3.14159f / 180.0f)) * (possessing_player->get_radius() + radius * 2);
+
+		float player_center_x = possessing_player->get_rel_x() + possessing_player->get_radius();
+		float player_center_y = possessing_player->get_rel_y() + possessing_player->get_radius();
+
+		rel_x = player_center_x - radius + 1.5 * cos(possessing_player->get_screen_angle() * (3.14159f / 180.0f)) * (possessing_player->get_radius() + radius * 2);
+		rel_y = player_center_y - radius + 1.5 * sin(possessing_player->get_screen_angle() * (3.14159f / 180.0f)) * (possessing_player->get_radius() + radius * 2);
 
 		vel_x = possessing_player->get_vel_x();
 		vel_y = possessing_player->get_vel_y();

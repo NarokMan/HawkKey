@@ -41,7 +41,7 @@ std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 9;
+int num_pucks = 10;
 std::vector<Puck> pucks;
 
 int num_players = 1;
@@ -412,8 +412,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 				pucks[j].set_vel_x(players[i].get_vel_x() + 1 * cos(angle));
                 pucks[j].set_vel_y(players[i].get_vel_y() + 1 * sin(angle));
 
-
-                if (pucks[j].possessing_player == nullptr) {
+                printf("%f\n", angle);
+                if (pucks[j].possessing_player == nullptr && players[i].is_facing_puck(angle * 180 / 3.14, 45)) {
 
                     printf("Collision with unpossessed puck!\n");
 

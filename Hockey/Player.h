@@ -35,7 +35,8 @@ public:
 	bool colliding_with_puck(int puck_x, int puck_y, int puck_radius);
 	bool stick_colliding_with_puck(int x1, int y1, int x2, int y2, int puck_x, int puck_y, int puck_radius);
 
-	bool is_left_of_stick(int puck_center_x, int puck_center_y);
+	//bool is_left_of_stick(int puck_center_x, int puck_center_y);
+	bool is_facing_puck(float angle_to_puck, float angle_threshold);
 
 	void set_rel_x(float new_rel_x);
 	void set_rel_y(float new_rel_y);
