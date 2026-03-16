@@ -44,13 +44,6 @@ void Puck::update_screen_position(int rink_x, int rink_y) {
 	screen_y = rink_y + rel_y;
 }
 
-bool Puck::check_collision_with_rink(int x1, int y1, int x2, int y2) {
-	if (rel_x + radius * 2 > x1 && rel_x < x2 && rel_y + radius * 2 > y1 && rel_y < y2) {
-		return true;
-	}
-	return false;
-}
-
 int Puck::get_screen_x(int rink_x) { return rink_x + rel_x; }
 int Puck::get_screen_y(int rink_y) { return rink_y + rel_y; }
 float Puck::get_rel_x() { return rel_x; }

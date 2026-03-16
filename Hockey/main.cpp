@@ -32,6 +32,9 @@ struct controls {
 
 struct controls buttons = { false, false, false, false };
 
+bool charging_shot = false;
+SDL_Time charge_shot_begin = 0;
+
  /* We will use this renderer to draw into this window every frame. */
 static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
@@ -247,6 +250,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
         case SDL_BUTTON_LEFT:
             buttons.mouse_left = true;
+			charging_shot = true;
+			charge_shot_begin = SDL_GetTicks();
             break;
         case SDL_BUTTON_RIGHT:
             buttons.mouse_right = true;
@@ -261,6 +266,24 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
         case SDL_BUTTON_LEFT:
             buttons.mouse_left = false;
+			charging_shot = false;
+            
+            if (players[0].possessed_puck != nullptr) {
+
+				float charge_coeff = (SDL_GetTicks() - charge_shot_begin) / 500.0f; // Charge coefficient based on how long the shot was charged, in seconds
+                if (charge_coeff > 3.0f) {
+                    charge_coeff = 3.0f; // Cap the charge coefficient at 3 seconds
+				}
+
+				players[0].possessed_puck->possessing_player = nullptr; // Drop the puck
+				players[0].possessed_puck->set_vel_x(players[0].get_vel_x() + cos(players[0].get_screen_angle() * (3.14159f / 180.0f)) * charge_coeff * 10); // Shoot the puck in the direction the player is facing, with velocity based on charge time
+				players[0].possessed_puck->set_vel_y(players[0].get_vel_y() + sin(players[0].get_screen_angle() * (3.14159f / 180.0f)) * charge_coeff * 10);
+				players[0].possessed_puck = nullptr; // Player no longer possesses the puck
+				players[0].set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
+
+            }
+
+			charge_shot_begin = 0;
             break;
         case SDL_BUTTON_RIGHT:
             buttons.mouse_right = false;
@@ -360,8 +383,60 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                     pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
                 }
 
+                if (pucks[j].possessing_player != nullptr) {
+
+                    pucks[j].possessing_player->possessed_puck = nullptr; // Drop the puck
+                    pucks[j].possessing_player->set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
+                    pucks[j].possessing_player = nullptr; // Player no longer possesses the puck
+
+                }
+
                 if (num_pucks < 2) {
                     break;
+                }
+
+            }
+
+        }
+
+        for (int j = 0; j < num_players; j++) {
+
+            if (rink.check_rink_mesh_collision(i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
+
+                float norm_angle = rink.get_normal(i);
+
+                float vel_x = players[j].get_vel_x();
+                float vel_y = players[j].get_vel_y();
+                float speed = sqrt(vel_x * vel_x + vel_y * vel_y);
+
+                float norm_x = cos(norm_angle);
+                float norm_y = sin(norm_angle);
+                float tang_x = -norm_y; // Negative reciprocal of normal, perpendicular
+                float tang_y = norm_x;
+
+                float vel_normal = vel_x * norm_x + vel_y * norm_y;
+                float vel_tangent = vel_x * tang_x + vel_y * tang_y;
+
+                vel_normal = -vel_normal * 0.05;
+                vel_tangent = vel_tangent * 0.8;
+
+                vel_x = vel_normal * norm_x + vel_tangent * tang_x;
+                vel_y = vel_normal * norm_y + vel_tangent * tang_y;
+
+                players[j].set_vel_x(vel_x);
+                players[j].set_vel_y(vel_y);
+
+                while (rink.check_rink_mesh_collision(i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
+                    players[j].set_rel_x(players[j].get_rel_x() + 1 * cos(norm_angle));
+                    players[j].set_rel_y(players[j].get_rel_y() + 1 * sin(norm_angle));
+                }
+
+                if (players[j].possessed_puck != nullptr) {
+
+                    players[j].possessed_puck->possessing_player = nullptr; // Drop the puck
+                    players[j].possessed_puck = nullptr; // Player no longer possesses the puck
+                    players[j].set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
+
                 }
 
             }
@@ -412,7 +487,6 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 				pucks[j].set_vel_x(players[i].get_vel_x() + 1 * cos(angle));
                 pucks[j].set_vel_y(players[i].get_vel_y() + 1 * sin(angle));
 
-                printf("%f\n", angle);
                 if (pucks[j].possessing_player == nullptr && players[i].is_facing_puck(angle * 180 / 3.14, 45)) {
 
                     printf("Collision with unpossessed puck!\n");
@@ -426,6 +500,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                     case NOT_POSSESSING_NOT_STABBING:
 
                         pucks[j].possessing_player = &players[i];
+						players[i].possessed_puck = &pucks[j];
                         players[i].set_player_state(POSSESSING);
                         break;
 

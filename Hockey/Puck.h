@@ -12,8 +12,6 @@ public:
 	void update_position();
 	void update_screen_position(int rink_x, int rink_y);
 
-	bool check_collision_with_rink(int x1, int y1, int x2, int y2);
-
 	int get_screen_x(int rink_x);
 	int get_screen_y(int rink_y);
 	float get_rel_x();
