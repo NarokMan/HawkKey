@@ -431,13 +431,15 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                     players[j].set_rel_y(players[j].get_rel_y() + 1 * sin(norm_angle));
                 }
 
-                if (players[j].possessed_puck != nullptr) {
+				printf("%f\n", vel_normal);
+                if (abs(vel_normal) > 0.2f)
+                    if (players[j].possessed_puck != nullptr) {
 
-                    players[j].possessed_puck->possessing_player = nullptr; // Drop the puck
-                    players[j].possessed_puck = nullptr; // Player no longer possesses the puck
-                    players[j].set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
+                        players[j].possessed_puck->possessing_player = nullptr; // Drop the puck
+                        players[j].possessed_puck = nullptr; // Player no longer possesses the puck
+                        players[j].set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
 
-                }
+                    }
 
             }
 
