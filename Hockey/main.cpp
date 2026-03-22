@@ -44,7 +44,7 @@ std::vector<SDL_Texture*> textures;
 
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 10;
+int num_pucks = 999;
 std::vector<Puck> pucks;
 
 int num_players = 1;
@@ -152,7 +152,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         textures[2] = NULL;
     }
     else {
-        SDL_Log(ANSI_COLOR_GREEN "Loaded rink image successfully!" ANSI_COLOR_RESET);
+        SDL_Log(ANSI_COLOR_GREEN "Loaded player image successfully!" ANSI_COLOR_RESET);
         textures[2] = SDL_CreateTextureFromSurface(renderer, temp_surface);
         SDL_DestroySurface(temp_surface);
     }
@@ -163,9 +163,25 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         pucks.push_back(Puck(rand() % 3000, rand() % 1000, rand() % 100 / 10 + 1, rand() % 100 / 10 + 1, 10, textures[0], nullptr)); // Creates pucks
 	}
 
+	if (pucks.size() == num_pucks) {
+         SDL_Log(ANSI_COLOR_GREEN "Loaded all pucks successfully!" ANSI_COLOR_RESET);
+    }
+    else {
+        SDL_Log(ANSI_COLOR_RED "Failed to load all pucks!" ANSI_COLOR_RESET);
+    }
+
+
     for (int i = 0; i < num_players; i++) {
         players.push_back(Player(rand() % 3000, rand() % 1000, 40, 0, textures[2], nullptr));
     }
+
+    if (players.size() == num_players) {
+        SDL_Log(ANSI_COLOR_GREEN "Loaded all players successfully!" ANSI_COLOR_RESET);
+    }
+    else {
+        SDL_Log(ANSI_COLOR_RED "Failed to load all players!" ANSI_COLOR_RESET);
+    }
+
 
 	rink.set_texture(textures[1]); // Sets rink texture
 	rink.load_rink_mesh_from_file("rink_outline.csv"); // Loads rink mesh from file
@@ -431,8 +447,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                     players[j].set_rel_y(players[j].get_rel_y() + 1 * sin(norm_angle));
                 }
 
-				printf("%f\n", vel_normal);
-                if (abs(vel_normal) > 0.2f)
+                if (abs(vel_normal) > 0.3f)
                     if (players[j].possessed_puck != nullptr) {
 
                         players[j].possessed_puck->possessing_player = nullptr; // Drop the puck
