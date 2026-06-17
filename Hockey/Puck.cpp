@@ -1,6 +1,7 @@
 #include "Puck.h"
 #include "Player.h"
 #include <SDL3/SDL.h>
+#include <cmath>
 
 Puck::Puck(int init_x, int init_y, float init_vel_x, float init_vel_y, int init_radius, SDL_Texture* init_texture, Player* possess_player)
 {

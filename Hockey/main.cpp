@@ -10,6 +10,8 @@
 #include "Rink.h"
 #include "Camera.h"
 #include "Player.h"
+#include <cstdio>
+#include <cmath>
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"

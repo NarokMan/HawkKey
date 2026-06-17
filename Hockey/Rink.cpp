@@ -1,5 +1,7 @@
 #include "Rink.h"
 #include <SDL3/SDL.h>
+#include <cmath>
+#include <iostream>
 
 Rink::Rink(int init_x, int init_y, int init_width, int init_height, SDL_Texture* init_texture)
 {
@@ -30,14 +32,17 @@ void Rink::load_rink_mesh_from_file(const char* filename)
     FILE* file = NULL;
 
     // fopen_s returns errno_t (0 on success)
-    errno_t err = fopen_s(&file, filename, "r");
-    if (err != 0 || file == NULL) {
+    file = fopen(filename, "r");
+    if (file == NULL) {
         SDL_Log("Failed to open rink mesh file: %s", filename);
         return;
     }
 
     int x, y;
-    while (fscanf_s(file, "%d,%d", &x, &y) == 2) {
+    char line[50];
+    //while (fscanf_s(file, "%d,%d", &x, &y) == 2) {
+    while (fgets(line, sizeof(line), file)) {
+		sscanf(line, "%d, %d", &x, &y);
         SDL_Point point = { x, y };
         rink_mesh.push_back(point);
     }

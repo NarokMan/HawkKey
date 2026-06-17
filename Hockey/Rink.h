@@ -1,6 +1,8 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include <vector>
+#include <cmath>
+#include <iostream>
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
