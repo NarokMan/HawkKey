@@ -11,6 +11,7 @@ class Rink
 {
 
 public:
+	Rink();
 	Rink(int x, int y, int width, int height, SDL_Texture* texture);
 	int get_screen_x(int camera_x);
 	int get_screen_y(int camera_y);

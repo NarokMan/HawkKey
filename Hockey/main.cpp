@@ -10,6 +10,7 @@
 #include "Rink.h"
 #include "Camera.h"
 #include "Player.h"
+#include "Map.h"
 #include <cstdio>
 #include <cmath>
 
@@ -44,6 +45,7 @@ static SDL_Renderer* renderer = NULL;
 int num_textures = 3;
 std::vector<SDL_Texture*> textures;
 
+Map* map = nullptr;
 Rink rink(0, 0, 3000, 1275, NULL);
 
 int num_pucks = 999;
@@ -186,7 +188,19 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
 
 	rink.set_texture(textures[1]); // Sets rink texture
-	rink.load_rink_mesh_from_file("rink_outline.csv"); // Loads rink mesh from file
+	
+	if (argc > 1)
+		rink.load_rink_mesh_from_file(argv[1]); // Loads rink mesh from file
+	else {
+		
+		SDL_Log("Please enter what map you wish to open. The name of the folder, not the CFG file name.");
+		std::string selected_map;
+		std::cin >> selected_map;
+		
+		rink.load_rink_mesh_from_file(selected_map.c_str());
+		
+	}
+		
 	if (rink.get_rink_mesh().size() == 0) {
         SDL_Log(ANSI_COLOR_RED "Failed to load rink mesh!" ANSI_COLOR_RESET);
     }

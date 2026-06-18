@@ -3,6 +3,15 @@
 #include <cmath>
 #include <iostream>
 
+Rink::Rink()
+{
+	screen_x = 0;
+	screen_y = 0;
+	width = 3000;
+	height = 1275;
+	texture = NULL;
+}
+
 Rink::Rink(int init_x, int init_y, int init_width, int init_height, SDL_Texture* init_texture)
 {
 	screen_x = init_x;
