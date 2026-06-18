@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "Rink.h"
 #include <SDL3/SDL.h>
 #include <cmath>

@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL3/SDL.h>
+#include "Puck.h"
 
 enum player_states {
 	POSSESSING = 0,
