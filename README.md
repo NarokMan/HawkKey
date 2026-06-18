@@ -10,7 +10,7 @@ successsful this time.
 
 STATUS: In development. Struggling.
 
-Date: 3/16/2026
+Date: 6/18/2026
 
 Creator(s): Narok
 
@@ -82,3 +82,11 @@ Version 0.10.0:
 - The player now has collision with the wall
 - The player can now shoot the puck with left click
 - Swapped out arrow key-based movement with wasd
+
+Version 0.11.0:
+- Big update. I added a new class 'map' and made this app
+  somewhat compatible with the editor. I removed most of
+  what the 'Rink' class does and allowed for more than
+  one collision cluster. So now new maps can be made in
+  the editor, and loaded into the game. So happy it's
+  finally mostly done.
