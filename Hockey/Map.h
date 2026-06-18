@@ -41,8 +41,6 @@ class Map {
 
 public:
 	
-	Rink rink;
-	
 	int num_clusters;
     std::vector<collision_cluster> collision_clusters;
     
@@ -56,6 +54,10 @@ public:
     int player_start_angle;
     
     Map(std::string map_name);
+    
+    bool check_mesh_collision(int cluster_id, int node_id, int puck_x, int puck_y, int puck_radius);
+    float get_regular_func(float angle);
+    float get_normal(int cluster_id, int id);
     
     struct collision_cluster read_cluster_file(std::string filename, enum collision_type collision);
 	std::vector<struct collision_cluster> read_all_clusters(std::string map_name, int collision[], int num_of_clusters);

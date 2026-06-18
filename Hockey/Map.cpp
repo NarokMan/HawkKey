@@ -11,9 +11,6 @@
 
 Map::Map(std::string map_name) {
 	
-	// Just putting this here, will change later
-	rink = Rink(0, 0, 3000, 1275, NULL);
-	
 	FILE* file;
 	
 	std::string cfg_name = "maps/";
@@ -232,4 +229,69 @@ std::vector<struct trigger_cluster> Map::read_all_triggers(std::string map_name,
 	
 	return trigger_array;
 	
+}
+
+bool Map::check_mesh_collision(int cluster_id, int node_id, int puck_x, int puck_y, int puck_radius)
+{
+    int id_1 = node_id;
+	int id_2 = (node_id + 1) % collision_clusters[cluster_id].node_array.size();
+
+	// Vector from point 1 to point 2
+	float dx = collision_clusters[cluster_id].node_array[id_2].x - collision_clusters[cluster_id].node_array[id_1].x;
+	float dy = collision_clusters[cluster_id].node_array[id_2].y - collision_clusters[cluster_id].node_array[id_1].y;
+
+	// Vector from point 1 to puck center
+	float fx = puck_x - collision_clusters[cluster_id].node_array[id_1].x;
+	float fy = puck_y - collision_clusters[cluster_id].node_array[id_1].y;
+
+    float t = (fx * dx + fy * dy) / (dx * dx + dy * dy);
+
+    if (t < 0.0f)
+        t = 0.0f;
+    else if (t > 1.0f)
+        t = 1.0f;
+
+	float closest_x = collision_clusters[cluster_id].node_array[id_1].x + t * dx;
+	float closest_y = collision_clusters[cluster_id].node_array[id_1].y + t * dy;
+
+	float dist_x = puck_x - closest_x;
+	float dist_y = puck_y - closest_y;
+
+	float distance_squared = dist_x * dist_x + dist_y * dist_y;
+
+    return distance_squared <= puck_radius * puck_radius;
+}
+
+float Map::get_regular_func(float angle) {
+
+    while (angle > 3.141592653f) {
+		angle -= 2.0f * 3.141592653f;
+    }
+
+    while (angle < -3.141592653f) {
+        angle += 2.0f * 3.141592653f;
+    }
+
+	return angle;
+
+}
+
+float Map::get_normal(int cluster_id, int node_id) {
+
+    int id_1 = node_id;
+    int id_2 = (node_id + 1) % collision_clusters[cluster_id].node_array.size();
+
+    // Vector from point 1 to point 2
+    float dx = collision_clusters[cluster_id].node_array[id_2].x - collision_clusters[cluster_id].node_array[id_1].x;
+    float dy = collision_clusters[cluster_id].node_array[id_2].y - collision_clusters[cluster_id].node_array[id_1].y;
+
+	// Normal vector
+    float normal_x = -dy;
+    float normal_y = dx;
+
+	float angle = atan2f(normal_y, normal_x); // Angle in radians
+	angle = get_regular_func(angle);
+
+	return angle;
+
 }

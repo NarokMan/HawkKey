@@ -173,10 +173,24 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     else {
         SDL_Log(ANSI_COLOR_RED "Failed to load all pucks!" ANSI_COLOR_RESET);
     }
+    
 
-
-    for (int i = 0; i < num_players; i++) {
-        players.push_back(Player(rand() % 3000, rand() % 1000, 40, 0, textures[2], nullptr));
+	rink.set_texture(textures[1]); // Sets rink texture
+	
+	if (argc > 1)
+		map = new Map(std::string(argv[1])); // Loads rink mesh from file
+	else {
+		
+		SDL_Log("Please enter what map you wish to open. The name of the folder, not the CFG file name.");
+		std::string selected_map;
+		std::cin >> selected_map;
+		
+		map = new Map(selected_map);
+		
+	}
+	
+	for (int i = 0; i < num_players; i++) {
+        players.push_back(Player(map->player_start_x, map->player_start_y, 40, map->player_start_angle, textures[2], nullptr));
     }
 
     if (players.size() == num_players) {
@@ -185,23 +199,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     else {
         SDL_Log(ANSI_COLOR_RED "Failed to load all players!" ANSI_COLOR_RESET);
     }
-
-
-	rink.set_texture(textures[1]); // Sets rink texture
-	
-	if (argc > 1)
-		rink.load_rink_mesh_from_file(argv[1]); // Loads rink mesh from file
-	else {
 		
-		SDL_Log("Please enter what map you wish to open. The name of the folder, not the CFG file name.");
-		std::string selected_map;
-		std::cin >> selected_map;
-		
-		rink.load_rink_mesh_from_file(selected_map.c_str());
-		
-	}
-		
-	if (rink.get_rink_mesh().size() == 0) {
+	if (map->collision_clusters.size() == 0) {
         SDL_Log(ANSI_COLOR_RED "Failed to load rink mesh!" ANSI_COLOR_RESET);
     }
     else {
@@ -368,8 +367,13 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 	SDL_RenderTexture(renderer, rink.get_texture(), NULL, &rink_rect);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);  /* new color, full alpha. */
-	for (int i = 0; i < rink.get_rink_mesh().size(); i++) {
-        SDL_Point mesh_point = rink.get_rink_mesh_point(i);
+    
+    // For each cluster
+    for (int n = 0; n < map->collision_clusters.size(); n++)
+	for (int i = 0; i < map->collision_clusters[n].node_array.size(); i++) { // For each node in cluster n
+        SDL_Point mesh_point;
+        mesh_point.x = map->collision_clusters[n].node_array[i].x;
+        mesh_point.y = map->collision_clusters[n].node_array[i].y;
 
         // Draw mesh nodes
         //SDL_FRect draw_point = { rink.get_screen_x(camera.get_x()) + mesh_point.x, rink.get_screen_y(camera.get_y()) + mesh_point.y, 4, 4 };
@@ -379,15 +383,15 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         SDL_RenderLine(renderer,
             rink.get_screen_x(camera.get_x()) + mesh_point.x,
             rink.get_screen_y(camera.get_y()) + mesh_point.y,
-            rink.get_screen_x(camera.get_x()) + rink.get_rink_mesh_point((i + 1) % rink.get_rink_mesh().size()).x,
-			rink.get_screen_y(camera.get_y()) + rink.get_rink_mesh_point((i + 1) % rink.get_rink_mesh().size()).y
+            rink.get_screen_x(camera.get_x()) + map->collision_clusters[n].node_array[(i + 1) % map->collision_clusters[n].node_array.size()].x,
+			rink.get_screen_y(camera.get_y()) + map->collision_clusters[n].node_array[(i + 1) % map->collision_clusters[n].node_array.size()].y
 		);
 
         for (int j = 0; j < num_pucks; j++) {
 
-            if (rink.check_rink_mesh_collision(i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
+            if (map->check_mesh_collision(n, i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
                 //printf("Collision detected at id: %d! Normal angle: %f\n", i, rink.get_normal(i));
-                float norm_angle = rink.get_normal(i);
+                float norm_angle = map->get_normal(n, i);
 
                 float vel_x = pucks[j].get_vel_x();
                 float vel_y = pucks[j].get_vel_y();
@@ -410,7 +414,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                 pucks[j].set_vel_x(vel_x);
                 pucks[j].set_vel_y(vel_y);
 
-                while (rink.check_rink_mesh_collision(i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
+                while (map->check_mesh_collision(n, i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
                     pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
                     pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
                 }
@@ -433,9 +437,9 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
         for (int j = 0; j < num_players; j++) {
 
-            if (rink.check_rink_mesh_collision(i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
+            if (map->check_mesh_collision(n, i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
 
-                float norm_angle = rink.get_normal(i);
+                float norm_angle = map->get_normal(n, i);
 
                 float vel_x = players[j].get_vel_x();
                 float vel_y = players[j].get_vel_y();
@@ -458,7 +462,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                 players[j].set_vel_x(vel_x);
                 players[j].set_vel_y(vel_y);
 
-                while (rink.check_rink_mesh_collision(i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
+                while (map->check_mesh_collision(n, i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
                     players[j].set_rel_x(players[j].get_rel_x() + 1 * cos(norm_angle));
                     players[j].set_rel_y(players[j].get_rel_y() + 1 * sin(norm_angle));
                 }

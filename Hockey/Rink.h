@@ -18,8 +18,6 @@ public:
 	int get_width();
 	int get_height();
 	SDL_Texture* get_texture();
-	std::vector<SDL_Point> get_rink_mesh();
-	SDL_Point get_rink_mesh_point(int index);
 
 	void set_screen_x(int new_x);
 	void set_screen_y(int new_y);
@@ -27,16 +25,11 @@ public:
 	void set_height(int new_height);
 	void set_texture(SDL_Texture* new_texture);
 
-	void load_rink_mesh_from_file(const char* filename);
-	bool check_rink_mesh_collision(int id, int puck_x, int puck_y, int puck_radius);
-	float get_normal(int id);
-
 private:
 	float screen_x;
 	float screen_y;
 	int width;
 	int height;
 	SDL_Texture* texture;
-	std::vector<SDL_Point> rink_mesh;
 
 };
