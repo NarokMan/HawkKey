@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "Map.h"
 #include "Rink.h"
 #include <vector>
