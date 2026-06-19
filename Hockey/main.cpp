@@ -48,7 +48,7 @@ std::vector<SDL_Texture*> textures;
 Map* map = nullptr;
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 999;
+int num_pucks = 9999;
 std::vector<Puck> pucks;
 
 int num_players = 1;
@@ -56,9 +56,18 @@ std::vector<Player> players;
 
 Camera camera;
 
+void load_new_map(std::string map_name) {
+    if (map != nullptr) {
+        delete map;
+    }
+    map = new Map(map_name);
+}
+
 int frameStart = 0;
 
 MIX_Mixer* mixer = NULL;
+MIX_Track* track = NULL;
+MIX_Audio* audio = NULL;
 
 /*  This function runs once at startup. 
     Its parameters are:
@@ -68,7 +77,7 @@ MIX_Mixer* mixer = NULL;
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
 
-    SDL_SetAppMetadata("SDL3 Window", "0.9.0", "com.narok.template"); // Sets app metadata
+    SDL_SetAppMetadata("HemorrhEngine", "1.0.0", "com.narok.template"); // Sets app metadata
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         SDL_Log(ANSI_COLOR_RED "Couldn't initialize SDL: %s" ANSI_COLOR_RESET, SDL_GetError());
@@ -188,6 +197,22 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 		map = new Map(selected_map);
 		
 	}
+	
+	audio = MIX_LoadAudio(mixer, map->music_file.c_str(), false);
+	if (!audio) {
+        SDL_Log(ANSI_COLOR_RED "Couldn't load %s: %s" ANSI_COLOR_RESET, map->music_file.c_str(), SDL_GetError());
+    } else {
+		SDL_Log(ANSI_COLOR_GREEN "Loaded music!" ANSI_COLOR_GREEN);
+	}
+	
+	track = MIX_CreateTrack(mixer);
+    if (!track) {
+        SDL_Log("Couldn't create a mixer track: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+    MIX_SetTrackAudio(track, audio);
+    
+    MIX_PlayTrack(track, 0);
 	
 	for (int i = 0; i < num_players; i++) {
         players.push_back(Player(map->player_start_x, map->player_start_y, 40, map->player_start_angle, textures[2], nullptr));
@@ -366,7 +391,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     SDL_FRect rink_rect = { (float)rink.get_screen_x(camera.get_x()), (float)rink.get_screen_y(camera.get_y()), (float)rink.get_width(), (float)rink.get_height()};
 	SDL_RenderTexture(renderer, rink.get_texture(), NULL, &rink_rect);
 
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);  /* new color, full alpha. */
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);  
     
     // For each cluster
     for (int n = 0; n < map->collision_clusters.size(); n++)
@@ -389,9 +414,10 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
         for (int j = 0; j < num_pucks; j++) {
 
+			if (map->collision_clusters[n].collision != NONE)
             if (map->check_mesh_collision(n, i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
                 //printf("Collision detected at id: %d! Normal angle: %f\n", i, rink.get_normal(i));
-                float norm_angle = map->get_normal(n, i);
+                float norm_angle = map->get_normal(n, i, map->collision_clusters[n].collision);
 
                 float vel_x = pucks[j].get_vel_x();
                 float vel_y = pucks[j].get_vel_y();
@@ -435,11 +461,12 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
         }
 
+		if (map->collision_clusters[n].collision != NONE)
         for (int j = 0; j < num_players; j++) {
 
             if (map->check_mesh_collision(n, i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
 
-                float norm_angle = map->get_normal(n, i);
+                float norm_angle = map->get_normal(n, i, map->collision_clusters[n].collision);
 
                 float vel_x = players[j].get_vel_x();
                 float vel_y = players[j].get_vel_y();
@@ -481,7 +508,28 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         }
 
     }
+    
+   
+    // Render all trigger clusters
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);  
+    for (int n = 0; n < map->trigger_clusters.size(); n++)
+	for (int i = 0; i < map->trigger_clusters[n].node_array.size(); i++) { // For each node in cluster n
+        SDL_Point mesh_point;
+        mesh_point.x = map->trigger_clusters[n].node_array[i].x;
+        mesh_point.y = map->trigger_clusters[n].node_array[i].y;
 
+        // Draw mesh lines
+        SDL_RenderLine(renderer,
+            rink.get_screen_x(camera.get_x()) + mesh_point.x,
+            rink.get_screen_y(camera.get_y()) + mesh_point.y,
+            rink.get_screen_x(camera.get_x()) + map->trigger_clusters[n].node_array[(i + 1) % map->trigger_clusters[n].node_array.size()].x,
+			rink.get_screen_y(camera.get_y()) + map->trigger_clusters[n].node_array[(i + 1) % map->trigger_clusters[n].node_array.size()].y
+		);
+		
+	}
+    
+
+	// Accelerate and move pucks
     for (int i = 0; i < num_pucks; i++) {
 
         if (pucks[i].get_total_velocity() < 0.5) {

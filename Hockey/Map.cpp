@@ -84,6 +84,7 @@ Map::Map(std::string map_name) {
 	if (music_questionmark == 0)
 		SDL_Log("There will be no music. :(");
 	else {
+		fgets(line, sizeof(line), file);
 		sscanf(line, "%s", temp_music_file);
 		SDL_Log("There will be music: %s", temp_music_file);
 	}
@@ -109,7 +110,8 @@ Map::Map(std::string map_name) {
 	collision_clusters = read_all_clusters(map_name, collision, num_clusters);
 	trigger_clusters = read_all_triggers(map_name, trigger_destinations, num_triggers);
 	
-	music_file = std::string(temp_music_file);
+	music_file = "maps/";
+	music_file = music_file + map_name + "/" + std::string(temp_music_file);
 	
 }
 
@@ -276,10 +278,16 @@ float Map::get_regular_func(float angle) {
 
 }
 
-float Map::get_normal(int cluster_id, int node_id) {
+float Map::get_normal(int cluster_id, int node_id, enum collision_type collision) {
 
-    int id_1 = node_id;
-    int id_2 = (node_id + 1) % collision_clusters[cluster_id].node_array.size();
+	int id_1, id_2;
+	if (collision == INSIDE) {
+		id_1 = node_id;
+		id_2 = (node_id + 1) % collision_clusters[cluster_id].node_array.size();
+	} else if (collision == OUTSIDE) {
+		id_2 = node_id;
+		id_1 = (node_id + 1) % collision_clusters[cluster_id].node_array.size();
+	}
 
     // Vector from point 1 to point 2
     float dx = collision_clusters[cluster_id].node_array[id_2].x - collision_clusters[cluster_id].node_array[id_1].x;
