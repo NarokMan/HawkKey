@@ -67,6 +67,7 @@ void load_new_map(std::string map_name) {
     map = new Map(map_name);
     
     audio = MIX_LoadAudio(mixer, map->music_file.c_str(), false);
+    SDL_Log("Playing file %s", map->music_file.c_str());
     MIX_SetTrackAudio(track, audio);
     MIX_PlayTrack(track, 0);
 }
@@ -204,7 +205,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 	
 	audio = MIX_LoadAudio(mixer, map->music_file.c_str(), false);
 	if (!audio) {
-        SDL_Log(ANSI_COLOR_RED "Couldn't load %s: %s" ANSI_COLOR_RESET, map->music_file.c_str(), SDL_GetError());
+        SDL_Log(ANSI_COLOR_RED "Couldn't load %s or maybe there is no music for this map: %s" ANSI_COLOR_RESET, map->music_file.c_str(), SDL_GetError());
     } else {
 		SDL_Log(ANSI_COLOR_GREEN "Loaded music!" ANSI_COLOR_GREEN);
 	}
@@ -593,8 +594,6 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                 pucks[j].set_vel_y(players[i].get_vel_y() + 1 * sin(angle));
 
                 if (pucks[j].possessing_player == nullptr && players[i].is_facing_puck(angle * 180 / 3.14, 45)) {
-
-                    printf("Collision with unpossessed puck!\n");
 
                     // Determines course of action based on player_state: 
                     // POSSESSING = 0,
