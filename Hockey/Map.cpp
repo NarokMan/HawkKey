@@ -266,6 +266,37 @@ bool Map::check_mesh_collision(int cluster_id, int node_id, int puck_x, int puck
     return distance_squared <= puck_radius * puck_radius;
 }
 
+bool Map::check_trigger_collision(int trigger_id, int node_id, int puck_x, int puck_y, int puck_radius)
+{
+    int id_1 = node_id;
+	int id_2 = (node_id + 1) % trigger_clusters[trigger_id].node_array.size();
+
+	// Vector from point 1 to point 2
+	float dx = trigger_clusters[trigger_id].node_array[id_2].x - trigger_clusters[trigger_id].node_array[id_1].x;
+	float dy = trigger_clusters[trigger_id].node_array[id_2].y - trigger_clusters[trigger_id].node_array[id_1].y;
+
+	// Vector from point 1 to puck center
+	float fx = puck_x - trigger_clusters[trigger_id].node_array[id_1].x;
+	float fy = puck_y - trigger_clusters[trigger_id].node_array[id_1].y;
+
+    float t = (fx * dx + fy * dy) / (dx * dx + dy * dy);
+
+    if (t < 0.0f)
+        t = 0.0f;
+    else if (t > 1.0f)
+        t = 1.0f;
+
+	float closest_x = trigger_clusters[trigger_id].node_array[id_1].x + t * dx;
+	float closest_y = trigger_clusters[trigger_id].node_array[id_1].y + t * dy;
+
+	float dist_x = puck_x - closest_x;
+	float dist_y = puck_y - closest_y;
+
+	float distance_squared = dist_x * dist_x + dist_y * dist_y;
+
+    return distance_squared <= puck_radius * puck_radius;
+}
+
 float Map::get_regular_func(float angle) {
 
     while (angle > 3.141592653f) {

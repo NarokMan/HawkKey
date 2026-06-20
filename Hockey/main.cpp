@@ -56,18 +56,22 @@ std::vector<Player> players;
 
 Camera camera;
 
+MIX_Mixer* mixer = NULL;
+MIX_Track* track = NULL;
+MIX_Audio* audio = NULL;
+
 void load_new_map(std::string map_name) {
     if (map != nullptr) {
         delete map;
     }
     map = new Map(map_name);
+    
+    audio = MIX_LoadAudio(mixer, map->music_file.c_str(), false);
+    MIX_SetTrackAudio(track, audio);
+    MIX_PlayTrack(track, 0);
 }
 
 int frameStart = 0;
-
-MIX_Mixer* mixer = NULL;
-MIX_Track* track = NULL;
-MIX_Audio* audio = NULL;
 
 /*  This function runs once at startup. 
     Its parameters are:
@@ -525,6 +529,22 @@ SDL_AppResult SDL_AppIterate(void* appstate)
             rink.get_screen_x(camera.get_x()) + map->trigger_clusters[n].node_array[(i + 1) % map->trigger_clusters[n].node_array.size()].x,
 			rink.get_screen_y(camera.get_y()) + map->trigger_clusters[n].node_array[(i + 1) % map->trigger_clusters[n].node_array.size()].y
 		);
+		
+		for (int j = 0; j < num_players; j++)
+		if (map->check_trigger_collision(n, i, players[j].get_center_x(), players[j].get_center_y(), players[j].get_radius())) {
+			
+			load_new_map(map->trigger_clusters[n].destination_map_name);
+			for (int x = 0; x < num_players; x++) {
+				
+				players[x].set_rel_x(map->player_start_x);
+				players[x].set_rel_y(map->player_start_y);
+				
+				players[x].set_vel_x(0);
+				players[x].set_vel_y(0);
+				
+			}
+			
+		}
 		
 	}
     

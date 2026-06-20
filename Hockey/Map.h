@@ -56,6 +56,7 @@ public:
     Map(std::string map_name);
     
     bool check_mesh_collision(int cluster_id, int node_id, int puck_x, int puck_y, int puck_radius);
+    bool check_trigger_collision(int trigger_id, int node_id, int puck_x, int puck_y, int puck_radius);
     float get_regular_func(float angle);
     float get_normal(int cluster_id, int id, enum collision_type collision);
     
