@@ -8,9 +8,7 @@ I aim to fix that with new knowledge I've gained
 over the past year. Hopefully I will be more
 successsful this time.
 
-STATUS: In development. Struggling.
-
-Date: 6/18/2026
+Date: 6/26/2026
 
 Creator(s): Narok
 
@@ -90,3 +88,6 @@ Version 0.11.0:
   one collision cluster. So now new maps can be made in
   the editor, and loaded into the game. So happy it's
   finally mostly done.
+  
+Version 0.12.0:
+- Implmented pucks, triggers work. Music too.

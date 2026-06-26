@@ -63,6 +63,9 @@ void load_new_map(std::string map_name) {
     }
     map = new Map(map_name);
     
+    for (int i = 0; i < map->pucks.size(); i++)
+		map->pucks[i].set_texture(textures[0]);
+    
     audio = MIX_LoadAudio(mixer, map->music_file.c_str(), false);
     SDL_Log("Playing file %s", map->music_file.c_str());
     MIX_SetTrackAudio(track, audio);
@@ -187,7 +190,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 		
 	}
 	
-	SDL_Log("Found %d pucks", map->pucks.size());
+	SDL_Log(ANSI_COLOR_GREEN "Found %d pucks" ANSI_COLOR_RESET, map->pucks.size());
 	for (int i = 0; i < map->pucks.size(); i++)
 		map->pucks[i].set_texture(textures[0]);
 	
