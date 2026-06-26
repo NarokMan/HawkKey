@@ -2,6 +2,7 @@
 #include <string>
 #include <SDL3/SDL.h>
 #include "Rink.h"
+#include "Puck.h"
 
 enum collision_type {
 	
@@ -46,6 +47,9 @@ public:
     
     int num_triggers;
     std::vector<trigger_cluster> trigger_clusters;
+    
+    int num_pucks;
+    std::vector<Puck> pucks;
     
     std::string music_file;
     

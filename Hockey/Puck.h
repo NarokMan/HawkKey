@@ -10,6 +10,7 @@ class Puck
 public:
 
 	Puck(int start_x, int start_y, float start_vel_x, float start_vel_y, int start_radius, SDL_Texture* start_texture, Player* possessing_player);
+	Puck(int start_x, int start_y, int start_radius);
 	void update_position();
 	void update_screen_position(int rink_x, int rink_y);
 

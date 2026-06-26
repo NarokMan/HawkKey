@@ -2,6 +2,7 @@
 
 #include "Map.h"
 #include "Rink.h"
+#include "Puck.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -42,6 +43,11 @@ Map::Map(std::string map_name) {
 	int player_x;
 	int player_y;
 	int player_angle;
+	
+	int num_pucks;
+	int temp_puck_x;
+	int temp_puck_y;
+	std::vector <Puck> puck_array;
 	
 	SDL_Log("Reading lines...");
 	
@@ -99,6 +105,18 @@ Map::Map(std::string map_name) {
 	sscanf(line, "%d %d %d", &player_x, &player_y, &player_angle);
 	SDL_Log("The player will start at %d, %d and be oriented %d degrees.", player_x, player_y, player_angle);
 	
+	fgets(line, sizeof(line), file);
+	
+	fgets(line, sizeof(line), file);
+	SDL_Log(line);
+	sscanf(line, "PUCKS %d", &num_pucks);
+	for (int i = 0; i < num_pucks; i++) {
+		fgets(line, sizeof(line), file);
+		SDL_Log(line);
+		sscanf(line, "%d %d", &temp_puck_x, &temp_puck_y);
+		puck_array.push_back(Puck(temp_puck_x, temp_puck_y, 10));
+	}
+	
 	fclose(file);
 	
 	SDL_Log("Making new map_data object...");
@@ -114,6 +132,8 @@ Map::Map(std::string map_name) {
 	
 	music_file = "maps/";
 	music_file = music_file + map_name + "/" + std::string(temp_music_file);
+	
+	pucks = puck_array;
 	
 }
 

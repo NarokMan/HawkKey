@@ -48,9 +48,6 @@ std::vector<SDL_Texture*> textures;
 Map* map = nullptr;
 Rink rink(0, 0, 3000, 1275, NULL);
 
-int num_pucks = 9999;
-std::vector<Puck> pucks;
-
 int num_players = 1;
 std::vector<Player> players;
 
@@ -174,19 +171,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         textures[2] = SDL_CreateTextureFromSurface(renderer, temp_surface);
         SDL_DestroySurface(temp_surface);
     }
-
-    srand(time(NULL));
-
-    for (int i = 0; i < num_pucks; i++) {
-        pucks.push_back(Puck(rand() % 3000, rand() % 1000, rand() % 100 / 10 + 1, rand() % 100 / 10 + 1, 10, textures[0], nullptr)); // Creates pucks
-	}
-
-	if (pucks.size() == num_pucks) {
-         SDL_Log(ANSI_COLOR_GREEN "Loaded all pucks successfully!" ANSI_COLOR_RESET);
-    }
-    else {
-        SDL_Log(ANSI_COLOR_RED "Failed to load all pucks!" ANSI_COLOR_RESET);
-    }
     
 
 	rink.set_texture(textures[1]); // Sets rink texture
@@ -202,6 +186,10 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 		map = new Map(selected_map);
 		
 	}
+	
+	SDL_Log("Found %d pucks", map->pucks.size());
+	for (int i = 0; i < map->pucks.size(); i++)
+		map->pucks[i].set_texture(textures[0]);
 	
 	audio = MIX_LoadAudio(mixer, map->music_file.c_str(), false);
 	if (!audio) {
@@ -387,8 +375,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
         players[i].update_position();
     }
 
-	for (int i = 0; i < pucks.size(); i++) {
-		pucks[i].update_position();
+	for (int i = 0; i < map->pucks.size(); i++) {
+		map->pucks[i].update_position();
     }
     camera.adjust_cam_position(players[0].get_rel_x() + players[0].get_radius(), players[0].get_rel_y() + players[0].get_radius()); // center the camera on the puck
 
@@ -417,15 +405,15 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 			rink.get_screen_y(camera.get_y()) + map->collision_clusters[n].node_array[(i + 1) % map->collision_clusters[n].node_array.size()].y
 		);
 
-        for (int j = 0; j < num_pucks; j++) {
+        for (int j = 0; j < map->pucks.size(); j++) {
 
 			if (map->collision_clusters[n].collision != NONE)
-            if (map->check_mesh_collision(n, i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
+            if (map->check_mesh_collision(n, i, map->pucks[j].get_center_x(), map->pucks[j].get_center_y(), map->pucks[j].get_radius())) {
                 //printf("Collision detected at id: %d! Normal angle: %f\n", i, rink.get_normal(i));
                 float norm_angle = map->get_normal(n, i, map->collision_clusters[n].collision);
 
-                float vel_x = pucks[j].get_vel_x();
-                float vel_y = pucks[j].get_vel_y();
+                float vel_x = map->pucks[j].get_vel_x();
+                float vel_y = map->pucks[j].get_vel_y();
                 float speed = sqrt(vel_x * vel_x + vel_y * vel_y);
                 
                 float norm_x = cos(norm_angle);
@@ -442,23 +430,23 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                 vel_x = vel_normal * norm_x + vel_tangent * tang_x;
                 vel_y = vel_normal * norm_y + vel_tangent * tang_y;
 
-                pucks[j].set_vel_x(vel_x);
-                pucks[j].set_vel_y(vel_y);
+                map->pucks[j].set_vel_x(vel_x);
+                map->pucks[j].set_vel_y(vel_y);
 
-                while (map->check_mesh_collision(n, i, pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
-                    pucks[j].set_rel_x(pucks[j].get_rel_x() + 1 * cos(norm_angle));
-                    pucks[j].set_rel_y(pucks[j].get_rel_y() + 1 * sin(norm_angle));
+                while (map->check_mesh_collision(n, i, map->pucks[j].get_center_x(), map->pucks[j].get_center_y(), map->pucks[j].get_radius())) {
+                    map->pucks[j].set_rel_x(map->pucks[j].get_rel_x() + 1 * cos(norm_angle));
+                    map->pucks[j].set_rel_y(map->pucks[j].get_rel_y() + 1 * sin(norm_angle));
                 }
 
-                if (pucks[j].possessing_player != nullptr) {
+                if (map->pucks[j].possessing_player != nullptr) {
 
-                    pucks[j].possessing_player->possessed_puck = nullptr; // Drop the puck
-                    pucks[j].possessing_player->set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
-                    pucks[j].possessing_player = nullptr; // Player no longer possesses the puck
+                    map->pucks[j].possessing_player->possessed_puck = nullptr; // Drop the puck
+                    map->pucks[j].possessing_player->set_player_state(NOT_POSSESSING_NOT_STABBING); // Set player state to not possessing
+                    map->pucks[j].possessing_player = nullptr; // Player no longer possesses the puck
 
                 }
 
-                if (num_pucks < 2) {
+                if (map->pucks.size() < 2) {
                     break;
                 }
 
@@ -551,49 +539,49 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     
 
 	// Accelerate and move pucks
-    for (int i = 0; i < num_pucks; i++) {
+    for (int i = 0; i < map->pucks.size(); i++) {
 
-        if (pucks[i].get_total_velocity() < 0.5) {
-            pucks[i].set_vel_x(0);
-            pucks[i].set_vel_y(0);
+        if (map->pucks[i].get_total_velocity() < 0.5) {
+            map->pucks[i].set_vel_x(0);
+            map->pucks[i].set_vel_y(0);
         }
 
         // Friction
-        pucks[i].multiply_vel_x(0.995f);
-        pucks[i].multiply_vel_y(0.995f);
+        map->pucks[i].multiply_vel_x(0.995f);
+        map->pucks[i].multiply_vel_y(0.995f);
 
     }
 
 	// Calculate puck screen pos and draw
     SDL_FRect puck_rect;
-	for (int i = 0; i < pucks.size(); i++) {
-        pucks[i].update_screen_position(rink.get_screen_x(camera.get_x()), rink.get_screen_y(camera.get_y()));
-        puck_rect = pucks[i].get_rect();
-        SDL_RenderTexture(renderer, pucks[i].get_texture(), NULL, &puck_rect);
+	for (int i = 0; i < map->pucks.size(); i++) {
+        map->pucks[i].update_screen_position(rink.get_screen_x(camera.get_x()), rink.get_screen_y(camera.get_y()));
+        puck_rect = map->pucks[i].get_rect();
+        SDL_RenderTexture(renderer, map->pucks[i].get_texture(), NULL, &puck_rect);
     }
 
     SDL_FRect player_rect;
     for (int i = 0; i < players.size(); i++) {
         players[i].update_screen_position(rink.get_screen_x(camera.get_x()), rink.get_screen_y(camera.get_y()));
 
-		for (int j = 0; j < num_pucks; j++) {
-            if (players[i].colliding_with_puck(pucks[j].get_center_x(), pucks[j].get_center_y(), pucks[j].get_radius())) {
+		for (int j = 0; j < map->pucks.size(); j++) {
+            if (players[i].colliding_with_puck(map->pucks[j].get_center_x(), map->pucks[j].get_center_y(), map->pucks[j].get_radius())) {
                 //printf("Player %d is colliding with puck %d!\n", i, j);
 
-				float dx = pucks[j].get_center_x() - players[i].get_center_x();
-				float dy = pucks[j].get_center_y() - players[i].get_center_y();
+				float dx = map->pucks[j].get_center_x() - players[i].get_center_x();
+				float dy = map->pucks[j].get_center_y() - players[i].get_center_y();
 				float angle = atan2f(dy, dx);
 
 				float distance = sqrt(dx * dx + dy * dy);
-				float overlap = players[i].get_radius() + pucks[j].get_radius() - distance;
+				float overlap = players[i].get_radius() + map->pucks[j].get_radius() - distance;
 
-                pucks[j].set_rel_x(pucks[j].get_rel_x() + (overlap + 1) * cos(angle));
-                pucks[j].set_rel_y(pucks[j].get_rel_y() + (overlap + 1) * sin(angle));
+                map->pucks[j].set_rel_x(map->pucks[j].get_rel_x() + (overlap + 1) * cos(angle));
+                map->pucks[j].set_rel_y(map->pucks[j].get_rel_y() + (overlap + 1) * sin(angle));
 
-				pucks[j].set_vel_x(players[i].get_vel_x() + 1 * cos(angle));
-                pucks[j].set_vel_y(players[i].get_vel_y() + 1 * sin(angle));
+				map->pucks[j].set_vel_x(players[i].get_vel_x() + 1 * cos(angle));
+                map->pucks[j].set_vel_y(players[i].get_vel_y() + 1 * sin(angle));
 
-                if (pucks[j].possessing_player == nullptr && players[i].is_facing_puck(angle * 180 / 3.14, 45)) {
+                if (map->pucks[j].possessing_player == nullptr && players[i].is_facing_puck(angle * 180 / 3.14, 45)) {
 
                     // Determines course of action based on player_state: 
                     // POSSESSING = 0,
@@ -603,8 +591,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
                     case NOT_POSSESSING_NOT_STABBING:
 
-                        pucks[j].possessing_player = &players[i];
-						players[i].possessed_puck = &pucks[j];
+                        map->pucks[j].possessing_player = &players[i];
+						players[i].possessed_puck = &map->pucks[j];
                         players[i].set_player_state(POSSESSING);
                         break;
 

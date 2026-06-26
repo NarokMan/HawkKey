@@ -17,6 +17,21 @@ Puck::Puck(int init_x, int init_y, float init_vel_x, float init_vel_y, int init_
 	possessing_player = possess_player;
 }
 
+Puck::Puck(int init_x, int init_y, int init_radius) {
+	
+	rel_x = init_x;
+	rel_y = init_y;
+	vel_x = 0;
+	vel_y = 0;
+	radius = init_radius;
+	texture = NULL;
+	screen_x = 0;
+	screen_x = 0;
+	rect = { screen_x, screen_y, radius * 2, radius * 2 };
+	possessing_player = nullptr;
+	
+}
+
 void Puck::update_position() {
 
 	if (possessing_player != nullptr) {
